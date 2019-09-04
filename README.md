@@ -20,7 +20,8 @@ The TESSE agent exists in a dedicated scene called *tesse_multiscene* located in
 This scene acts as the entry point to the simulation and environments are 
 [loaded 'around' the agent](https://github.mit.edu/TESS/TESSE_core/blob/master/scripts/tesse_position_interface.cs#L153) 
 by [additively loading](https://docs.unity3d.com/ScriptReference/SceneManagement.LoadSceneMode.Additive.html) a new scene to Unity.
-To add the TESSE capability to your scene, first add the *tesse_multiscene* scene to the build settings 
+
+To add the TESS agent to your scene, first add the *tesse_multiscene* scene to the build settings 
 [as described here](https://youtu.be/MQKJfZCAEa8?t=102). Next, add the desired scene, or scenes, to the build settings
 [as previously described](https://youtu.be/MQKJfZCAEa8?t=102). Ensure that all added scenes are **below** the *tesse_multiscene*
 scene in the [build order](https://youtu.be/MQKJfZCAEa8?t=126). The TESSE agent code that handles the scene changing expects 
