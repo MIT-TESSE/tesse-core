@@ -67,7 +67,7 @@ public class simple_tesse_controller : MonoBehaviour
     private int attempt = 0; // debug for respawner
 
     // duration variables for fixed frame rate execution 
-    public float cmd_time = 1f; // amount of game time in seconds for the action to execute
+    public float cmd_time = 0f; // amount of game time in seconds for the action to execute
     private float exec_time = 0f; // time action is being executed
     private float last_time = 0f; // time of last Update() loop
 
@@ -276,6 +276,7 @@ public class simple_tesse_controller : MonoBehaviour
     // FixedUpdate() runs at the physics update rate, independent of the frame rate
     void FixedUpdate()
     {
+        
         if (keyboard_active)
         {
             // fixed frame rate execution logic 
@@ -303,6 +304,7 @@ public class simple_tesse_controller : MonoBehaviour
 
         // cache current time for next Update() loop
         last_time = Time.time;
+        
 
         //*** update internal physics information for IMU readings ***//
         update_imu();

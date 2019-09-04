@@ -170,21 +170,29 @@ namespace tesse
                     Time.captureFramerate = frame_rate;
                     mod_frame_rate_flag = false;
                     stc.keyboard_active = true; // re-activate keyboard control
+
+                    if (Time.captureFramerate == 0 && Time.timeScale == 0f)
+                        Time.timeScale = 1f;
+                    else if (Time.captureFramerate > 0 && Time.timeScale == 1f)
+                        Time.timeScale = 0f;
                 }
 
                 if (set_time_scale_flag && (exec_time == 0f)) // only change if no commands are being executed
                 {
-                    if (Time.timeScale == 0)
-                    {
-                        Time.timeScale = 1;
-                    }
-                    else
-                    {
-                        Time.timeScale = 0;
-                    }
+                    //Time.timeScale = 1f;
 
+                    if ((Time.captureFramerate > 0) && (Time.timeScale == 0f))
+                    {
+                        Time.timeScale = 1f;
+                    }
+                    else if ((Time.captureFramerate > 0) && (Time.timeScale == 1f))
+                    {
+                        Time.timeScale = 0f;
+                    }
+                    
                     set_time_scale_flag = false;
                 }
+
                 if (!add_force_flag) // reset force
                 {
                     // this is done to ensure that any force commands are applied from the Update() where they were 
@@ -255,6 +263,9 @@ namespace tesse
 
                     // cache the name of the scene, retreived by querying based on build index
                     scene_name = SceneManager.GetSceneByBuildIndex(current_scene_index).name;
+
+                    // Unload all unused assets
+                    Resources.UnloadUnusedAssets();
 
                     // send a response back to the user containing metadata on the newly 
                     //loaded scene, this is sent via TCP

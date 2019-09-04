@@ -1,23 +1,23 @@
 ﻿/*
-DISTRIBUTION STATEMENT A. Approved for public release. Distribution is unlimited.
-
-This material is based upon work supported by the Under Secretary of Defense for Research 
-and Engineering under Air Force Contract No. FA8702-15-D-0001. Any opinions, findings, 
-conclusions or recommendations expressed in this material are those of the author(s) and 
-do not necessarily reflect the views of the Under Secretary of Defense for Research and 
-Engineering.
-
-© 2019 Massachusetts Institute of Technology.
-
-MIT Proprietary, Subject to FAR52.227-11 Patent Rights - Ownership by the contractor (May 2014)
-
-The software/firmware is provided to you on an As-Is basis
-
-Delivered to the U.S. Government with Unlimited Rights, as defined in DFARS Part 252.227-7013 
-or 7014 (Feb 2014). Notwithstanding any copyright notice, U.S. Government rights in this work
-are defined by DFARS 252.227-7013 or DFARS 252.227-7014 as detailed above. Use of this work 
-other than as specifically authorized by the U.S. Government may violate any copyrights that 
-exist in this work.
+#**************************************************************************************************
+# Distribution authorized to U.S. Government agencies and their contractors. Other requests for 
+# this document shall be referred to the MIT Lincoln Laboratory Technology Office.
+#
+# This material is based upon work supported by the Under Secretary of Defense for Research and 
+# Engineering under Air Force Contract No. FA8702-15-D-0001. Any opinions, findings, conclusions
+# or recommendations expressed in this material are those of the author(s) and do not necessarily 
+# reflect the views of the Under Secretary of Defense for Research and Engineering.
+# 
+# © 2019 Massachusetts Institute of Technology.
+#
+# The software/firmware is provided to you on an As-Is basis
+#
+# Delivered to the U.S. Government with Unlimited Rights, as defined in DFARS Part 252.227-7013 
+# or 7014 (Feb 2014). Notwithstanding any copyright notice, U.S. Government rights in this work 
+# are defined by DFARS 252.227-7013 or DFARS 252.227-7014 as detailed above. Use of this work other 
+# than as specifically authorized by the U.S. Government may violate any copyrights that exist in 
+# this work.
+#**************************************************************************************************
 */
 
 using System.Collections;
@@ -554,6 +554,7 @@ namespace tesse
                     cam.targetTexture = null;
                     RenderTexture.active = null;
                     Destroy(rt);
+                    Destroy(rtd);
 
                     // create a Unity NativeArray to hold the image data
                     //a NativeArray is used because it returns a pointer from the 
@@ -774,7 +775,7 @@ namespace tesse
             // send camera information back to client
 
             // create camera info xml formatted string
-            string cam_info = "<TESSE_Agent_CameraInfo_v0.2>\n";
+            string cam_info = "<TESSE_Agent_CameraInfo_v0.4>\n";
 
             if (request_cam_id >= agent_cameras.Count)
             {
@@ -793,7 +794,7 @@ namespace tesse
                 }
             }
 
-            cam_info += "</TESSE_Agent_CameraInfo_v0.2>\n";
+            cam_info += "</TESSE_Agent_CameraInfo_v0.4>\n";
 
             byte[] caminfo = Encoding.ASCII.GetBytes(cam_info);
 
