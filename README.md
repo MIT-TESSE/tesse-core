@@ -11,7 +11,7 @@ see [the TESSE open source project](https://github.mit.edu/TESS/TESSE_open_sourc
 To include the TESSE core components to an existing git project, simply add this repository as a submodule in
 *project_root*/Assets/TESSE.
 
-### IF the Project is not a Git Repository
+### If the Project is not a Git Repository
 Clone the repository into your Unity project in the Assets folder.
 
 ## Adding the TESSE Agent to your project
