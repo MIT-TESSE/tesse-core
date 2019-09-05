@@ -244,6 +244,11 @@ namespace tesse
                 metadata_string += "  <collision status=\'false\' name=\'\'/>\n";
             }
 
+            // add agent collider status
+            if (GetComponent<CapsuleCollider>().enabled)
+                metadata_string += "  <collider status=\'true\'/>\n";
+            else
+                metadata_string += "  <collider status=\'false\'/>\n";
 
             // add header closure statement
             metadata_string += "</TESSE_Agent_Metadata_v0.4>\n";

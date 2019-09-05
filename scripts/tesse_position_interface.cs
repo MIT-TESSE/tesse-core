@@ -69,6 +69,12 @@ namespace tesse
         // signal to unity update that position/orientation change is requested
         private static bool set_pos_quat = false;
 
+        // signal to enable or disable agent's collider
+        private bool set_collider = false;
+
+        // variable to hold desired collider state
+        private bool collider_state = false;
+
         // mutex lock for position requests
         private System.Object pos_request_lock = new System.Object();
 
@@ -165,6 +171,12 @@ namespace tesse
         {
             lock(pos_request_lock)
             {
+                if( set_collider ) // collider state change
+                {
+                    GetComponent<CapsuleCollider>().enabled = collider_state;
+                    set_collider = false;
+                }
+
                 if (mod_frame_rate_flag && (cmd_time == 0f) ) // only change if a previous command isn't executing
                 {
                     Time.captureFramerate = frame_rate;
@@ -414,10 +426,8 @@ namespace tesse
                         // process two axis add force request
                         lock (pos_request_lock)
                         {
-                            print("force request received!\n" + System.BitConverter.ToString(data));
                             if (frame_rate == 0) // only accept this command if fixed capture mode is inactive
                             {
-                                print("executing request");
                                 force_cmd.x = System.BitConverter.ToSingle(data, 4);  // Force on Z axis
                                 force_cmd.y = System.BitConverter.ToSingle(data, 8);  // Torque around Y axis
                                 force_cmd.z = 0; // no x force provided
@@ -432,7 +442,6 @@ namespace tesse
                         // process add force request with fixed capture mode for the given duration in game seconds
                         lock (pos_request_lock)
                         {
-                            print("received fixed frame rate request");
                             if (cmd_time == 0 && frame_rate > 0 && !mod_frame_rate_flag) // only accept the request if no command is currently in process
                             {
                                 force_cmd.x = System.BitConverter.ToSingle(data, 4);  // Force on Z axis
@@ -481,10 +490,8 @@ namespace tesse
                         // process add three axis force request
                         lock (pos_request_lock)
                         {
-                            print("force request received!\n" + Encoding.ASCII.GetString(data));
                             if (frame_rate == 0) // only accept this command if fixed capture mode is inactive
                             {
-                                print("executing...");
                                 force_cmd.x = System.BitConverter.ToSingle(data, 4);  // Force on Z axis
                                 force_cmd.y = System.BitConverter.ToSingle(data, 8);  // Torque around Y axis
                                 force_cmd.z = System.BitConverter.ToSingle(data, 12); // Force on X axis
@@ -529,6 +536,22 @@ namespace tesse
                     {
                         // respawn agent request received
                         stc.respawn_agent();
+                    }
+                    else if ((data.Length == 5) && (System.Convert.ToChar(data[0]) == 's') && (System.Convert.ToChar(data[1]) == 'C')
+                      && (System.Convert.ToChar(data[2]) == 'O') && (System.Convert.ToChar(data[3]) == 'L'))
+                    {
+                        // agent collider state request received
+                        lock( pos_request_lock )
+                        {
+                            set_collider = true;
+                            if( System.BitConverter.ToBoolean(data,4) )
+                            {
+                                collider_state = true;
+                            } else
+                            {
+                                collider_state = false;
+                            }
+                        }
                     }
                     else if ((data.Length == 8) && (System.Convert.ToChar(data[0]) == 'C') && (System.Convert.ToChar(data[1]) == 'S')
                       && (System.Convert.ToChar(data[2]) == 'c') && (System.Convert.ToChar(data[3]) == 'N'))
