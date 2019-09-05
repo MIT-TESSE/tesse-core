@@ -414,8 +414,10 @@ namespace tesse
                         // process two axis add force request
                         lock (pos_request_lock)
                         {
+                            print("force request received!\n" + System.BitConverter.ToString(data));
                             if (frame_rate == 0) // only accept this command if fixed capture mode is inactive
                             {
+                                print("executing request");
                                 force_cmd.x = System.BitConverter.ToSingle(data, 4);  // Force on Z axis
                                 force_cmd.y = System.BitConverter.ToSingle(data, 8);  // Torque around Y axis
                                 force_cmd.z = 0; // no x force provided
@@ -430,6 +432,7 @@ namespace tesse
                         // process add force request with fixed capture mode for the given duration in game seconds
                         lock (pos_request_lock)
                         {
+                            print("received fixed frame rate request");
                             if (cmd_time == 0 && frame_rate > 0 && !mod_frame_rate_flag) // only accept the request if no command is currently in process
                             {
                                 force_cmd.x = System.BitConverter.ToSingle(data, 4);  // Force on Z axis
@@ -478,8 +481,10 @@ namespace tesse
                         // process add three axis force request
                         lock (pos_request_lock)
                         {
+                            print("force request received!\n" + Encoding.ASCII.GetString(data));
                             if (frame_rate == 0) // only accept this command if fixed capture mode is inactive
                             {
+                                print("executing...");
                                 force_cmd.x = System.BitConverter.ToSingle(data, 4);  // Force on Z axis
                                 force_cmd.y = System.BitConverter.ToSingle(data, 8);  // Torque around Y axis
                                 force_cmd.z = System.BitConverter.ToSingle(data, 12); // Force on X axis
