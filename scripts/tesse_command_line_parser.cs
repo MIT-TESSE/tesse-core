@@ -49,8 +49,8 @@ namespace tesse
         public int met_broadcast_port = 9004; // udp port to send high rate metadata information
 
         // default parameters for keyboard control
-        public float speed = 10f;
-        public float turn_speed = 0.5f;
+        public float speed = 2f;
+        public float turn_speed = 0.05f;
         // default parameters for IMU update
         public int imu_update_rate = 200;
         // default parameter for fixed frame rate mode (capture_rate = 0 denotes real-time mode)

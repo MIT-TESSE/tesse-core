@@ -33,8 +33,8 @@ public class simple_tesse_controller : MonoBehaviour
 
     // variables for keyboard control
     private Rigidbody agent_rigid_body;
-    public float speed = 10f; // force multiplier for movement forces
-    public float turn_speed = 1f; // torque multiplier for movement forces
+    public float speed = 2f; // force multiplier for movement forces
+    public float turn_speed = .05f; // torque multiplier for movement forces
 
     // variables to hold input forces
     //NOTE: forces are applied until the next Update()
