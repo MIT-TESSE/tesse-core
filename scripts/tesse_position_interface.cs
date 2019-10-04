@@ -21,6 +21,7 @@ exist in this work.
 */
 
 using System.Collections;
+using System.Collections.Generic;
 using System;
 using System.Text;
 using System.Net;
@@ -107,6 +108,16 @@ namespace tesse
         private string scene_name = null; // name of scene for client response
         private int num_scenes = -1; // number of scenes in the build
 
+        // Object spawning numbers
+        private bool spawn_object_flag = false;
+        private SpawnObject requested_spawn_object;
+        private bool remove_spawned_objects = false;
+        private bool request_spawned_objects_info = false;
+        private List<UnityEngine.GameObject> spawned_objects = new List<UnityEngine.GameObject>();
+        public GameObject cubeObject;
+        private tesse_spawn_manager spawner; // controls agent spawning
+
+
         // reference to object segmentation
         private object_segmentation os = null;
 
@@ -164,6 +175,12 @@ namespace tesse
 
             // get name of this scene
             scene_name = SceneManager.GetSceneByBuildIndex(current_scene_index).name;
+        }
+
+        void Awake()
+        {
+            // setup various object parameters
+            spawner = GetComponent<tesse_spawn_manager>();
         }
 
         // Update is called once per frame
@@ -285,6 +302,46 @@ namespace tesse
 
                     // reset the command flag
                     change_scene_flag = false;
+                }
+
+                // Spawn objects into scene
+                if( spawn_object_flag )
+                {
+                    if( remove_spawned_objects )
+                    { // remove spawned objects
+                        foreach (var spawned_object in spawned_objects)
+                        {
+                            Destroy(spawned_object);
+                        }
+                        spawned_objects.Clear();
+                        remove_spawned_objects = false;
+                    }
+                    else if( request_spawned_objects_info )
+                    { // just return information on spawned objects
+                        request_spawned_objects_info = false;
+                    }
+                    else if( requested_spawn_object.method == 0 )
+                    { // add requested object at user location
+                        UnityEngine.GameObject new_object = Instantiate(cubeObject, 
+                            requested_spawn_object.position,
+                            requested_spawn_object.orientation);
+                        new_object.name = "CUBE";
+                        spawned_objects.Add(new_object);
+                    }
+                    else if ( requested_spawn_object.method == 1 )
+                    { // add requested object at random location
+                        UnityEngine.GameObject new_object = Instantiate(cubeObject,
+                            spawner.get_random_spawn_point(),
+                            UnityEngine.Random.rotation);
+                        new_object.name = "CUBE";
+                        spawned_objects.Add(new_object);
+                    }
+
+                    // send a response with list of objects
+                    send_objects();
+
+                    // reset the command flag
+                    spawn_object_flag = false;
                 }
             }
         }
@@ -506,8 +563,8 @@ namespace tesse
                         //this command changes the target height used by the tesse_hover_controller
                         lock (pos_request_lock)
                         {
-                           hover_controller.hover_height = System.BitConverter.ToSingle(data, 4);  // Hover height
-                           // this doesn't interact with the Unity Update() thread, so no flag is required
+                            hover_controller.hover_height = System.BitConverter.ToSingle(data, 4);  // Hover height
+                                                                                                    // this doesn't interact with the Unity Update() thread, so no flag is required
                         }
                     }
 
@@ -541,13 +598,14 @@ namespace tesse
                       && (System.Convert.ToChar(data[2]) == 'O') && (System.Convert.ToChar(data[3]) == 'L'))
                     {
                         // agent collider state request received
-                        lock( pos_request_lock )
+                        lock (pos_request_lock)
                         {
                             set_collider = true;
-                            if( System.BitConverter.ToBoolean(data,4) )
+                            if (System.BitConverter.ToBoolean(data, 4))
                             {
                                 collider_state = true;
-                            } else
+                            }
+                            else
                             {
                                 collider_state = false;
                             }
@@ -575,6 +633,52 @@ namespace tesse
                             send_scene_response(false);
                         }
 
+                    }
+                    else if ((data.Length == 40) && (System.Convert.ToChar(data[0]) == 'o') && (System.Convert.ToChar(data[1]) == 'S')
+                      && (System.Convert.ToChar(data[2]) == 'p') && (System.Convert.ToChar(data[3]) == 'n'))
+                    {
+                        // Spawn a new game object into the scene
+                        //NOTE: this command can be used even when the game is paused in fixed frame rate mode
+                        lock (pos_request_lock)
+                        {
+                            requested_spawn_object.type = System.BitConverter.ToInt32(data, 4);
+                            requested_spawn_object.method = System.BitConverter.ToInt32(data, 8);
+                            requested_spawn_object.position.x = System.BitConverter.ToSingle(data, 12); // x position (right)
+                            requested_spawn_object.position.y = System.BitConverter.ToSingle(data, 16); // y position (up)
+                            requested_spawn_object.position.z = System.BitConverter.ToSingle(data, 20); // z position (forward)
+                            requested_spawn_object.orientation.x = System.BitConverter.ToSingle(data, 24); // quaternion x
+                            requested_spawn_object.orientation.y = System.BitConverter.ToSingle(data, 28); // quaternion y
+                            requested_spawn_object.orientation.z = System.BitConverter.ToSingle(data, 32); // quaternion z
+                            requested_spawn_object.orientation.w = System.BitConverter.ToSingle(data, 36); // quaternion w
+
+                            spawn_object_flag = true; // flag to signal command to Unity Update() thread
+                            pos_client_addr = pos_request_ip.Address; // set requester's ip address, for confirmation message
+                        }
+
+                    }
+                    else if ((data.Length == 4) && (System.Convert.ToChar(data[0]) == 'o') && (System.Convert.ToChar(data[1]) == 'R')
+                     && (System.Convert.ToChar(data[2]) == 'e') && (System.Convert.ToChar(data[3]) == 'm'))
+                    {
+                        // Remove all spawned objects
+                        lock (pos_request_lock)
+                        {
+                            remove_spawned_objects = true;
+
+                            spawn_object_flag = true; // flag to signal command to Unity Update() thread
+                            pos_client_addr = pos_request_ip.Address; // set requester's ip address, for confirmation message
+                        }
+                    }
+                    else if ((data.Length == 4) && (System.Convert.ToChar(data[0]) == 'o') && (System.Convert.ToChar(data[1]) == 'R')
+                    && (System.Convert.ToChar(data[2]) == 'e') && (System.Convert.ToChar(data[3]) == 'q'))
+                    {
+                        // Remove all spawned objects
+                        lock (pos_request_lock)
+                        {
+                            request_spawned_objects_info = true;
+
+                            spawn_object_flag = true; // flag to signal command to Unity Update() thread
+                            pos_client_addr = pos_request_ip.Address; // set requester's ip address, for confirmation message
+                        }
                     }
                 }
             }
@@ -783,6 +887,89 @@ namespace tesse
             client.Close(); // close the connection to the remote server
         }
 
+        private void send_objects()
+        {
+            string response = "<objects>\n";
+            foreach (var spawned_object in spawned_objects)
+            {
+                response += "  <object>\n";
+                response += "    <type>" + spawned_object.name + "</type>\n";
+                response += "    <position x =\'" + spawned_object.transform.position.x + "\' y=\'" + spawned_object.transform.position.y + "\' z=\'" + spawned_object.transform.position.z + "\'/>\n";
+                response += "    <quaternion x =\'" + spawned_object.transform.rotation.x + "\' y=\'" + spawned_object.transform.rotation.y + "\' z=\'" + spawned_object.transform.rotation.z + "\' w=\'" + spawned_object.transform.rotation.w + "\'/>\n";
+                response += "  </object>\n";
+            }
+            response += "</objects>\n";
+
+            send("obji", response);
+        }
+
+        private void send(string tag, string message)
+        {
+            byte[] sinfo = Encoding.ASCII.GetBytes(message);
+
+            // create metadata payload header
+            byte[] btag = Encoding.ASCII.GetBytes(tag);
+            System.UInt32 message_tag = System.BitConverter.ToUInt32(btag, 0);
+            System.UInt32 res_data_length = (System.UInt32)sinfo.Length;
+
+            System.UInt32[] uint_header = new System.UInt32[] { message_tag, res_data_length };
+
+            byte[] p_header = new byte[uint_header.Length * sizeof(System.UInt32)];
+            System.Buffer.BlockCopy(uint_header, 0, p_header, 0, uint_header.Length * sizeof(System.UInt32));
+
+            // send image data back to client via tcp
+            IPEndPoint client_ep = new IPEndPoint(pos_client_addr, pos_send_port);
+
+            Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            client.NoDelay = true;
+            client.SendTimeout = 1000;
+            client.ReceiveTimeout = 500;
+
+            // connect to client
+            try
+            {
+                client.Connect(client_ep);
+                while (!client.Connected)
+                {
+                    Debug.Log("could not connect to client, retrying...\n");
+                    Thread.Sleep(500);
+                    client.Connect(client_ep);
+                }
+            }
+            catch (SocketException ex)
+            {
+                Debug.Log("Socket Exception! Details: " + ex.Message);
+                client.Close();
+                return;
+            }
+
+            // send camera information header to client
+            client.Send(p_header);
+
+            // send camera information payload to client
+            try
+            {
+                int temp_send_count = 0;
+
+                while (temp_send_count < sinfo.Length)
+                {
+                    client.NoDelay = true;
+                    int send_count = client.Send(sinfo, temp_send_count, sinfo.Length - temp_send_count, SocketFlags.None);
+                    temp_send_count += send_count;
+                }
+
+                while (socket_connected(client))
+                {
+                    Thread.Sleep(10);
+                }
+            }
+            catch (SocketException ex)
+            {
+                Debug.Log("Socket exception happend during tesse_position_interface send with error code: " + ex.Message);
+            }
+            client.Close(); // close the connection to the remote server
+        }
+
         private IEnumerator unload_current_scene()
         {
             AsyncOperation op_complete = SceneManager.UnloadSceneAsync(current_scene_index);
@@ -896,5 +1083,14 @@ namespace tesse
             // send telemetery update to user via udp
             pos_update_client.Send(telemetry, telemetry.Length, tele_ip);
         }
+    }
+
+    // Data structure for spawning objects
+    public struct SpawnObject
+    {
+        public Int32 type;
+        public Int32 method; // 0 = User specified, 1 = Random
+        public Vector3 position;
+        public Quaternion orientation;
     }
 }
