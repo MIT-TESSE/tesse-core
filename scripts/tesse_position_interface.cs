@@ -296,6 +296,8 @@ namespace tesse
                     // Unload all unused assets
                     Resources.UnloadUnusedAssets();
 
+                    spawned_objects.Clear(); // Clear out list of spawned objects
+
                     // send a response back to the user containing metadata on the newly 
                     //loaded scene, this is sent via TCP
                     send_scene_response(true);
@@ -307,7 +309,7 @@ namespace tesse
                 // Spawn objects into scene
                 if( spawn_object_flag )
                 {
-                    if( remove_spawned_objects )
+                    if (remove_spawned_objects)
                     { // remove spawned objects
                         foreach (var spawned_object in spawned_objects)
                         {
@@ -316,32 +318,38 @@ namespace tesse
                         spawned_objects.Clear();
                         remove_spawned_objects = false;
                     }
-                    else if( request_spawned_objects_info )
+                    else if (request_spawned_objects_info)
                     { // just return information on spawned objects
                         request_spawned_objects_info = false;
                     }
-                    else if( requested_spawn_object.method == 0 )
-                    { // add requested object at user location
-                        UnityEngine.GameObject new_object = Instantiate(cubeObject, 
-                            requested_spawn_object.position,
-                            requested_spawn_object.orientation);
-                        new_object.name = "CUBE";
-                        spawned_objects.Add(new_object);
-                    }
-                    else if ( requested_spawn_object.method == 1 )
-                    { // add requested object at random location
-                        UnityEngine.GameObject new_object = Instantiate(cubeObject,
-                            spawner.get_random_spawn_point(),
-                            UnityEngine.Random.rotation);
-                        new_object.name = "CUBE";
-                        spawned_objects.Add(new_object);
-                    }
+                    else
+                    { // Spawn in a new objects
+                        var new_object = new UnityEngine.GameObject();
+                        if (requested_spawn_object.method == 0)
+                        { // add requested object at user location
+                           new_object = Instantiate(cubeObject,
+                                requested_spawn_object.position,
+                                requested_spawn_object.orientation);
+                        } else { // add requested object at random spawn point
+                           new_object = Instantiate(cubeObject,
+                               spawner.get_random_spawn_point(),
+                               UnityEngine.Random.rotation);
+                        }
 
-                    // send a response with list of objects
-                    send_objects();
+                        new_object.name = cubeObject.name;
+                        spawned_objects.Add(new_object);  // Add to list of spawned objects
 
-                    // reset the command flag
-                    spawn_object_flag = false;
+                        // Update semantic segmentation
+                        Renderer r = new_object.GetComponent(typeof(Renderer)) as Renderer;
+                        Color obj_color = os.get_object_segmentation_color_by_name(new_object.name);
+                        var mpb = new MaterialPropertyBlock();
+                        r.GetPropertyBlock(mpb); // ensure that we persist the values of the current properties block
+                        mpb.SetColor("_ObjectColor", obj_color); // set the color property; this is used by the UberReplacement shader
+                        r.SetPropertyBlock(mpb);
+                    }
+ 
+                    send_objects(); // send a response with list of objects
+                    spawn_object_flag = false; // reset the command flag
                 }
             }
         }
@@ -893,7 +901,7 @@ namespace tesse
             foreach (var spawned_object in spawned_objects)
             {
                 response += "  <object>\n";
-                response += "    <type>" + spawned_object.name + "</type>\n";
+                response += "    <type>CUBE</type>\n"; // only object currently supported
                 response += "    <position x =\'" + spawned_object.transform.position.x + "\' y=\'" + spawned_object.transform.position.y + "\' z=\'" + spawned_object.transform.position.z + "\'/>\n";
                 response += "    <quaternion x =\'" + spawned_object.transform.rotation.x + "\' y=\'" + spawned_object.transform.rotation.y + "\' z=\'" + spawned_object.transform.rotation.z + "\' w=\'" + spawned_object.transform.rotation.w + "\'/>\n";
                 response += "  </object>\n";
