@@ -98,6 +98,8 @@ namespace tesse
         int request_height = -1; // height of image requested in pixels
         int request_cam_id = -1; // id of camera requested, this is the camera's position in the agent_cameras List
         float request_fov = -1; // field of view of the camera
+        float request_nearClipPlane = -1; // near clip plane of the camera
+        float request_farClipPlane = -1; // far clip plane of the camera
         float request_cam_x = -1; // x position of the camera relative to the agent; also used for x coordinate of the camera rotation matrix
         float request_cam_y = -1; // y position of the camera relative to the agent; also used for y coordinate of the camera rotation matrix
         float request_cam_z = -1; // z position of the camera relative to the agent; also used for z coordinate of the camera rotation matrix
@@ -321,7 +323,28 @@ namespace tesse
                             request_height = System.BitConverter.ToInt32(data, 4); // new camera height (rows)
                             request_width = System.BitConverter.ToInt32(data, 8); // new camera width (cols)
                             request_fov = System.BitConverter.ToSingle(data, 12); // new camera field of view, in degrees
+                            request_nearClipPlane = -1;
+                            request_farClipPlane = -1;
                             request_cam_id = System.BitConverter.ToInt32(data, 16); // id of camera to change the values on, -1 means all cameras
+
+                            cam_param_request_flag = true; // flag to signal command to Unity Update() thread
+                        }
+                    }
+                    else if ((data.Length == 28) && (System.Convert.ToChar(data[0]) == 's') && (System.Convert.ToChar(data[1]) == 'C')
+                      && (System.Convert.ToChar(data[2]) == 'a') && (System.Convert.ToChar(data[3]) == 'R'))
+                    {
+                        // set camera resolution requested
+                        lock (img_request_lock)
+                        {
+                            // cache requester's ip address for response
+                            img_client_addr = ip.Address;
+                            // requested parameters
+                            request_height = System.BitConverter.ToInt32(data, 4); // new camera height (rows)
+                            request_width = System.BitConverter.ToInt32(data, 8); // new camera width (cols)
+                            request_fov = System.BitConverter.ToSingle(data, 12); // new camera field of view, in degrees
+                            request_nearClipPlane = System.BitConverter.ToSingle(data, 16);
+                            request_farClipPlane = System.BitConverter.ToSingle(data, 20);
+                            request_cam_id = System.BitConverter.ToInt32(data, 24); // id of camera to change the values on, -1 means all cameras
 
                             cam_param_request_flag = true; // flag to signal command to Unity Update() thread
                         }
@@ -917,6 +940,13 @@ namespace tesse
                     agent_cameras[request_cam_id].fieldOfView = request_fov;
                 }
 
+                if (request_nearClipPlane > 0 && request_farClipPlane > 0 && request_nearClipPlane < request_farClipPlane)
+                {
+                    // clip plane change requested
+                    agent_cameras[request_cam_id].nearClipPlane = request_nearClipPlane;
+                    agent_cameras[request_cam_id].farClipPlane = request_farClipPlane;
+                }
+
                 send_camera_info();
 
             }
@@ -955,6 +985,13 @@ namespace tesse
                     {
                         // fov change requested
                         c.fieldOfView = request_fov;
+                    }
+
+                    if (request_nearClipPlane > 0 && request_farClipPlane > 0 && request_nearClipPlane < request_farClipPlane)
+                    {
+                        // clip plane change requested
+                        c.nearClipPlane = request_nearClipPlane;
+                        c.farClipPlane = request_farClipPlane;
                     }
                 }
                 send_camera_info();
