@@ -111,9 +111,11 @@ namespace tesse
         // Object spawning numbers
         private bool spawn_object_flag = false;
         private SpawnObject requested_spawn_object;
+        private int next_spawn_object_id = 0;
         private bool remove_spawned_objects = false;
+        private List<int> spawned_objects_to_remove = new List<int>();
         private bool request_spawned_objects_info = false;
-        private List<UnityEngine.GameObject> spawned_objects = new List<UnityEngine.GameObject>();
+        private Dictionary<int, UnityEngine.GameObject> spawned_objects = new Dictionary<int, UnityEngine.GameObject>();
         public GameObject cubeObject;
         private tesse_spawn_manager spawner; // controls agent spawning
 
@@ -316,11 +318,25 @@ namespace tesse
                 {
                     if (remove_spawned_objects)
                     { // remove spawned objects
-                        foreach (var spawned_object in spawned_objects)
-                        {
-                            Destroy(spawned_object);
+                        if (spawned_objects_to_remove.Count == 0)
+                        {  // Remove all objects
+                            foreach (var spawned_object in spawned_objects.Values)
+                                Destroy(spawned_object);
+
+                            spawned_objects.Clear();
+                        } else
+                        { // Remove requested objects
+                            foreach (var id in spawned_objects_to_remove)
+                            {
+                                UnityEngine.GameObject spawned_object;
+                                if (spawned_objects.TryGetValue(id, out spawned_object))
+                                {
+                                    Destroy(spawned_object);
+                                    spawned_objects.Remove(id);
+                                }
+                            }
                         }
-                        spawned_objects.Clear();
+
                         remove_spawned_objects = false;
                     }
                     else if (request_spawned_objects_info)
@@ -342,7 +358,7 @@ namespace tesse
                         }
 
                         new_object.name = cubeObject.name;
-                        spawned_objects.Add(new_object);  // Add to list of spawned objects
+                        spawned_objects.Add(next_spawn_object_id++, new_object);  // Add to dictionary of spawned objects
 
                         // Update semantic segmentation
                         Renderer r = new_object.GetComponent(typeof(Renderer)) as Renderer;
@@ -669,14 +685,17 @@ namespace tesse
                         }
 
                     }
-                    else if ((data.Length == 4) && (System.Convert.ToChar(data[0]) == 'o') && (System.Convert.ToChar(data[1]) == 'R')
+                    else if ((data.Length >= 4) && (System.Convert.ToChar(data[0]) == 'o') && (System.Convert.ToChar(data[1]) == 'R')
                      && (System.Convert.ToChar(data[2]) == 'e') && (System.Convert.ToChar(data[3]) == 'm'))
                     {
                         // Remove all spawned objects
                         lock (pos_request_lock)
                         {
                             remove_spawned_objects = true;
-
+                            spawned_objects_to_remove.Clear();
+                            for (int idx = 4; idx < data.Length; idx += 4)
+                                spawned_objects_to_remove.Add(System.BitConverter.ToInt32(data, idx));
+                            
                             spawn_object_flag = true; // flag to signal command to Unity Update() thread
                             pos_client_addr = pos_request_ip.Address; // set requester's ip address, for confirmation message
                         }
@@ -903,12 +922,13 @@ namespace tesse
         private void send_objects()
         {
             string response = "<objects>\n";
-            foreach (var spawned_object in spawned_objects)
+            foreach (KeyValuePair<int, UnityEngine.GameObject> kvp in spawned_objects)
             {
                 response += "  <object>\n";
                 response += "    <type>CUBE</type>\n"; // only object currently supported
-                response += "    <position x =\'" + spawned_object.transform.position.x + "\' y=\'" + spawned_object.transform.position.y + "\' z=\'" + spawned_object.transform.position.z + "\'/>\n";
-                response += "    <quaternion x =\'" + spawned_object.transform.rotation.x + "\' y=\'" + spawned_object.transform.rotation.y + "\' z=\'" + spawned_object.transform.rotation.z + "\' w=\'" + spawned_object.transform.rotation.w + "\'/>\n";
+                response += "    <id>" + kvp.Key + "</id>\n";
+                response += "    <position x =\'" + kvp.Value.transform.position.x + "\' y=\'" + kvp.Value.transform.position.y + "\' z=\'" + kvp.Value.transform.position.z + "\'/>\n";
+                response += "    <quaternion x =\'" + kvp.Value.transform.rotation.x + "\' y=\'" + kvp.Value.transform.rotation.y + "\' z=\'" + kvp.Value.transform.rotation.z + "\' w=\'" + kvp.Value.transform.rotation.w + "\'/>\n";
                 response += "  </object>\n";
             }
             response += "</objects>\n";
