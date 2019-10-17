@@ -20,12 +20,12 @@ other than as specifically authorized by the U.S. Government may violate any cop
 exist in this work.
 */
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System;
-using System.Text;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -234,10 +234,15 @@ namespace tesse
                 //can be requested in a single frame
                 if (teleport_flag) // teleport move requested
                 {
-                    // move the agent by the requested amount in the x and z directions
-                    agent_rigid_body.transform.Translate(new Vector3(teleport_cmd.x, 0.0f, teleport_cmd.y));
-                    // rotation the agent around its y axis by the requested amount
-                    agent_rigid_body.transform.Rotate(new Vector3(0.0f, teleport_cmd.z, 0.0f));
+                    // move the agent by the requested amount in the x and z directions, if the path is collision free;
+                    // Otherwise, move until the point of collision
+                    Vector3 theMove = agent_rigid_body.transform.TransformVector(new Vector3(teleport_cmd.x, 0.0f, teleport_cmd.y));
+                    RaycastHit hit;
+                    if (Physics.Raycast(agent_rigid_body.transform.position, theMove, out hit, theMove.magnitude))
+                        theMove = Vector3.ClampMagnitude(theMove, hit.distance);
+
+                    agent_rigid_body.transform.Translate(theMove, Space.World);
+                    agent_rigid_body.transform.Rotate(new Vector3(0.0f, teleport_cmd.z, 0.0f)); // rotation the agent around its y axis by the requested amount
 
                     // reset flag to thread
                     teleport_flag = false;
