@@ -603,11 +603,6 @@ namespace tesse
                     // two placeholders are used at the end for future features
                     System.UInt32[] uint_header = new System.UInt32[] { image_tag, image_payload_length, (System.UInt32)img_width, (System.UInt32)img_height, cam_id, image_type, 0, 0 };
 
-                    // create thread object to send image data to client
-                    //this is threaded so that the next camera can be rendered while the 
-                    //previous camera is being sent to the client
-                    //NOTE: these two operations are by far require the longest processing time of the entire system
-                    Thread img_send_thread;
                     if (!cam_req.compressed && cam_req.single_channel)
                     {
                         // send single channel image back to client
@@ -630,9 +625,8 @@ namespace tesse
                         byte[] p_header = uint_header.SelectMany(System.BitConverter.GetBytes).ToArray();
                         // send individual image header to client, this is fast
                         send_img_data(p_header);
-                        // create thread to send image payload to client, this isn't as fast so we thread to hide the transmission
-                        //behind rendering other cameras
-                        img_send_thread = new Thread(() => send_img_data(temp));
+                        // send image payload to client
+                        send_img_data(temp);
                     }
                     else if (cam_req.compressed && !cam_req.single_channel)
                     {
@@ -644,8 +638,8 @@ namespace tesse
                         byte[] p_header = uint_header.SelectMany(System.BitConverter.GetBytes).ToArray();
                         // send indvidual image header
                         send_img_data(p_header);
-                        // create thread to send image payload
-                        img_send_thread = new Thread(() => send_img_data(temp));
+                        // send image payload
+                        send_img_data(temp);
                     }
                     else
                     {
@@ -655,14 +649,10 @@ namespace tesse
                         // send individual image header information, length isn't modified since uncompressed three channel
                         //was assumed on header creation
                         send_img_data(p_header);
-                        // create thread to send image payload back to user
-                        img_send_thread = new Thread(() => send_img_data(temp_img.ToArray()));
+                        // send image payload back to user
+                        send_img_data(temp_img.ToArray());
                     }
-                    img_send_thread.Start();
 
-                    // wait on last image payload send thread to complete before continuing
-                    if (cam_req.cam_requested == cams_requested[cams_requested.Count - 1].cam_requested) // wait on last image to finish
-                        img_send_thread.Join();
                 }
                 else
                 {
