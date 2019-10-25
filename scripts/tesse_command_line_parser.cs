@@ -51,8 +51,6 @@ namespace tesse
         // default parameters for keyboard control
         public float speed = 2f;
         public float turn_speed = 0.05f;
-        // default parameters for IMU update
-        public int imu_update_rate = 200;
         // default parameter for fixed frame rate mode (capture_rate = 0 denotes real-time mode)
         public int capture_rate = 0;
         // default parameter for execution time when in fixed frame rate mode (i.e. the time an action is executed)
@@ -144,13 +142,6 @@ namespace tesse
                             ++i;
                     }
 
-                    else if (args[i] == "--imu_update_rate")
-                    {
-                        if (!((args.Length >= i + 1) && System.Int32.TryParse(args[i + 1], out imu_update_rate)))
-                            print("Failed to parse value for argument " + args[i]);
-                        else
-                            ++i;
-                    }
                     else if (args[i] == "--capture_rate")
                     {
                         if (!((args.Length >= i + 1) && System.Int32.TryParse(args[i + 1], out capture_rate)))
@@ -170,8 +161,7 @@ namespace tesse
                               " \"--set_resolution width_int height_int\" - sets the screen resolution of the game to width_int x height_int \n" +
                               " \"--fullscreen\" - if this argument is given, then the game will be fullscreen \n" +
                               " \"--speed float\" - sets the force given to the agent when pressing the 'w', 's', 'q' and 'e' keys to float \n" +
-                              " \"--turn_speed float\" - sets the torque given to the agent when pressing the 'a' and 'd' keys to float\n" +
-                              " \"--imu_update_rate int\" - sets the update rate of the imu to int updates per second\n"
+                              " \"--turn_speed float\" - sets the torque given to the agent when pressing the 'a' and 'd' keys to float\n"
                             );
                     }
                     else
