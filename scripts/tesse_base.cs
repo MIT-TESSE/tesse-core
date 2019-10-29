@@ -1,5 +1,5 @@
 ﻿/*
- * #**************************************************************************************************
+#**************************************************************************************************
 # Distribution authorized to U.S. Government agencies and their contractors. Other requests for 
 # this document shall be referred to the MIT Lincoln Laboratory Technology Office.
 #
