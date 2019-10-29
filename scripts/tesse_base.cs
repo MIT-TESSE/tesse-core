@@ -82,7 +82,6 @@ namespace tesse
             stc.turn_speed = cla_parser.turn_speed; // set turn speed variable for keyboard control
 
             Time.captureFramerate = cla_parser.capture_rate; // set fixed capture rate
-            stc.cmd_time = cla_parser.execution_time; // set time to execute actions in fixed capture rate mode
         }
 
         // convenience function for checking if a socket is still active

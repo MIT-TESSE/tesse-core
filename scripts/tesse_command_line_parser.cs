@@ -53,8 +53,6 @@ namespace tesse
         public float turn_speed = 0.05f;
         // default parameter for fixed frame rate mode (capture_rate = 0 denotes real-time mode)
         public int capture_rate = 0;
-        // default parameter for execution time when in fixed frame rate mode (i.e. the time an action is executed)
-        public float execution_time = 1f;
 
         // tesse base processes all command line inputs
         protected void Awake()
@@ -150,13 +148,6 @@ namespace tesse
                             ++i;
                     }
 
-                    else if (args[i] == "--execution_time")
-                    {
-                        if (!((args.Length >= i + 1) && System.Single.TryParse(args[i + 1], out execution_time)))
-                            print("Failed to parse execution time value for argument " + args[i]);
-                        else
-                            ++i;
-                    }
                     else if( args[i] == "--help" || args[i] == "-h" )
                     {
                         print("\"--listen_port int\" - sets the ports that the interface listens on, all listen ports operate on the UDP protocol \n" +
@@ -165,8 +156,7 @@ namespace tesse
                               " \"--fullscreen\" - if this argument is given, then the game will be fullscreen \n" +
                               " \"--speed float\" - sets the force given to the agent when pressing the 'w', 's', 'q' and 'e' keys to float \n" +
                               " \"--turn_speed float\" - sets the torque given to the agent when pressing the 'a' and 'd' keys to float\n" +
-                              " \"--capture_rate\" - sets Time.captureFramerate in Unity \n" +
-                              " \"--execution_time\" - movement inputs will be executed for this many seconds of game time \n"
+                              " \"--capture_rate\" - sets Time.captureFramerate in Unity \n"
                             );
                     }
                     else

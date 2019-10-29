@@ -144,7 +144,7 @@ __TESSE__ was primarily designed to provide a network interface. However, a limi
 Some configuration of __TESSE__ is available via a command line interface. 
 If the name of your Unity build is `tesse.x86_64`, for example, then the list of available arguments are as follows.
 ```
-./tesse.x86_64 [--listen_port <list_port>] [--send_port <send_port> [--set_resolution <height> <width>] [--fullscreen] [--speed <speed>] [--turn_speed <turn_speed>] [--capture_rate <capture_rate>] [--execution_time <execution_time>]
+./tesse.x86_64 [--listen_port <list_port>] [--send_port <send_port> [--set_resolution <height> <width>] [--fullscreen] [--speed <speed>] [--turn_speed <turn_speed>] [--capture_rate <capture_rate>]
 ```
 
 - __<listen_port>__ specifies the first port that __TESSE__ binds to to listen for external commands. 
@@ -165,8 +165,6 @@ Default value is 0.05.
 - __<capture_rate>__ sets [Time.captureFramerate](https://docs.unity3d.com/ScriptReference/Time-captureFramerate.html) in Unity.
 Default value is 0. 
 Note this parameter may be useful when attempting to obtain images at a simulated frame rate higher than your hardware is capable of achieving.
-- __<execution_time>__ sets the length of time that all movement inputs will be executed.
-Default value is 1.
 
 
 ### Keyboard Controls
