@@ -311,7 +311,7 @@ namespace tesse
                             cam_info_request_flag = true; // flag to signal command to Unity Update() thread
                         }
                     }
-                    else if ((data.Length == 20) && (System.Convert.ToChar(data[0]) == 's') && (System.Convert.ToChar(data[1]) == 'C')
+                    else if ((data.Length >= 20) && (System.Convert.ToChar(data[0]) == 's') && (System.Convert.ToChar(data[1]) == 'C')
                       && (System.Convert.ToChar(data[2]) == 'a') && (System.Convert.ToChar(data[3]) == 'R'))
                     {
                         // set camera resolution requested
@@ -320,31 +320,20 @@ namespace tesse
                             // cache requester's ip address for response
                             img_client_addr = ip.Address;
                             // requested parameters
-                            request_height = System.BitConverter.ToInt32(data, 4); // new camera height (rows)
-                            request_width = System.BitConverter.ToInt32(data, 8); // new camera width (cols)
-                            request_fov = System.BitConverter.ToSingle(data, 12); // new camera field of view, in degrees
-                            request_nearClipPlane = -1;
-                            request_farClipPlane = -1;
-                            request_cam_id = System.BitConverter.ToInt32(data, 16); // id of camera to change the values on, -1 means all cameras
+                            request_cam_id = System.BitConverter.ToInt32(data, 4); // id of camera to change the values on, -1 means all cameras
+                            request_height = System.BitConverter.ToInt32(data, 8); // new camera height (rows)
+                            request_width = System.BitConverter.ToInt32(data, 12); // new camera width (cols)
+                            request_fov = System.BitConverter.ToSingle(data, 16); // new camera field of view, in degrees
 
-                            cam_param_request_flag = true; // flag to signal command to Unity Update() thread
-                        }
-                    }
-                    else if ((data.Length == 28) && (System.Convert.ToChar(data[0]) == 's') && (System.Convert.ToChar(data[1]) == 'C')
-                      && (System.Convert.ToChar(data[2]) == 'a') && (System.Convert.ToChar(data[3]) == 'R'))
-                    {
-                        // set camera resolution requested
-                        lock (img_request_lock)
-                        {
-                            // cache requester's ip address for response
-                            img_client_addr = ip.Address;
-                            // requested parameters
-                            request_height = System.BitConverter.ToInt32(data, 4); // new camera height (rows)
-                            request_width = System.BitConverter.ToInt32(data, 8); // new camera width (cols)
-                            request_fov = System.BitConverter.ToSingle(data, 12); // new camera field of view, in degrees
-                            request_nearClipPlane = System.BitConverter.ToSingle(data, 16);
-                            request_farClipPlane = System.BitConverter.ToSingle(data, 20);
-                            request_cam_id = System.BitConverter.ToInt32(data, 24); // id of camera to change the values on, -1 means all cameras
+                            if (data.Length >= 24)
+                                request_nearClipPlane = System.BitConverter.ToSingle(data, 20);
+                            else
+                                request_nearClipPlane = -1;
+
+                            if (data.Length >= 28)
+                                request_farClipPlane = System.BitConverter.ToSingle(data, 24);
+                            else
+                                request_farClipPlane = -1;
 
                             cam_param_request_flag = true; // flag to signal command to Unity Update() thread
                         }
@@ -359,11 +348,11 @@ namespace tesse
                             img_client_addr = ip.Address;
                             // requested parameters
                             //all positions are relative to the TESSE agent center point
-                            request_cam_x = System.BitConverter.ToSingle(data, 4); // new camera offset in x dimension, in meters
-                            request_cam_y = System.BitConverter.ToSingle(data, 8); // new camera offset in y dimension, in meters
-                            request_cam_z = System.BitConverter.ToSingle(data, 12); // new camera offset in z dimension, in meters
-                            request_cam_id = System.BitConverter.ToInt32(data, 16); // id of camera to change the values on, -1 means all cameras
-
+                            request_cam_id = System.BitConverter.ToInt32(data, 4); // id of camera to change the values on, -1 means all cameras
+                            request_cam_x = System.BitConverter.ToSingle(data, 8); // new camera offset in x dimension, in meters
+                            request_cam_y = System.BitConverter.ToSingle(data, 12); // new camera offset in y dimension, in meters
+                            request_cam_z = System.BitConverter.ToSingle(data, 16); // new camera offset in z dimension, in meters
+                            
                             cam_pos_request_flag = true; // flag to signal command to Unity Update() thread
                         }
                     }
@@ -377,12 +366,12 @@ namespace tesse
                             img_client_addr = ip.Address;
                             // requested parameters
                             //all rotations are relative to the TESSE agent rotations
-                            request_cam_x = System.BitConverter.ToSingle(data, 4); // new camera quaternion x value
-                            request_cam_y = System.BitConverter.ToSingle(data, 8); // new camera quaternion y value
-                            request_cam_z = System.BitConverter.ToSingle(data, 12); // new camera quaternion z values
-                            request_cam_w = System.BitConverter.ToSingle(data, 16); // new camera quaternion w value
-                            request_cam_id = System.BitConverter.ToInt32(data, 20); // id of camera to change the values on, -1 means all cameras
-
+                            request_cam_id = System.BitConverter.ToInt32(data, 4); // id of camera to change the values on, -1 means all cameras
+                            request_cam_x = System.BitConverter.ToSingle(data, 8); // new camera quaternion x value
+                            request_cam_y = System.BitConverter.ToSingle(data, 12); // new camera quaternion y value
+                            request_cam_z = System.BitConverter.ToSingle(data, 16); // new camera quaternion z values
+                            request_cam_w = System.BitConverter.ToSingle(data, 20); // new camera quaternion w value
+                            
                             cam_rot_request_flag = true; // flag to signal command to Unity Update() thread
                         }
                     }
