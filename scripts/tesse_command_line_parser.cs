@@ -1,5 +1,5 @@
 ﻿/*
- * #**************************************************************************************************
+#**************************************************************************************************
 # Distribution authorized to U.S. Government agencies and their contractors. Other requests for 
 # this document shall be referred to the MIT Lincoln Laboratory Technology Office.
 #
@@ -148,7 +148,10 @@ namespace tesse
                             print("Failed to parse value for argument " + args[i]);
                         else
                             ++i;
+                    }
 
+                    else if (args[i] == "--execution_time")
+                    {
                         if (!((args.Length >= i + 1) && System.Single.TryParse(args[i + 1], out execution_time)))
                             print("Failed to parse execution time value for argument " + args[i]);
                         else
@@ -161,7 +164,9 @@ namespace tesse
                               " \"--set_resolution width_int height_int\" - sets the screen resolution of the game to width_int x height_int \n" +
                               " \"--fullscreen\" - if this argument is given, then the game will be fullscreen \n" +
                               " \"--speed float\" - sets the force given to the agent when pressing the 'w', 's', 'q' and 'e' keys to float \n" +
-                              " \"--turn_speed float\" - sets the torque given to the agent when pressing the 'a' and 'd' keys to float\n"
+                              " \"--turn_speed float\" - sets the torque given to the agent when pressing the 'a' and 'd' keys to float\n" +
+                              " \"--capture_rate\" - sets Time.captureFramerate in Unity \n" +
+                              " \"--execution_time\" - movement inputs will be executed for this many seconds of game time \n"
                             );
                     }
                     else
