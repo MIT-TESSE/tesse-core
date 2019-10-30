@@ -186,6 +186,48 @@ There are a few special key bindings, as well.
 See [TESSE_interface](../TESSE_interface) for an example on how to use the network interface. 
 In particular, there is a [python notebook](../TESSE_interface/blob/master/python-demonstration.ipynb) with various examples.
 
+### Running TESSE Headless
+
+Use the following instructions to run __TESSE__ on a headless Linux server. This setup procedure has been tested on Ubuntu and Red Hat systems and is derived from [here](https://medium.com/@h0lycattle/running-unity3d-in-a-virtualized-headless-ubuntu-environment-1adf95c05994) and [here](https://github.com/mit-fast/FlightGoggles/wiki/Running-Flightgoggles-in-AWS).
+
+1. Install Xorg:
+
+    - Ubuntu:
+     `sudo apt-get install xserver-xorg-core`
+     
+    - Red Hat:
+     `sudo yum install xorg-x11-apps`
+     
+2. Get the BusID of the GPU:
+
+    ` nvidia-xconfig --query-gpu-info`
+
+    The BusID will look something like `PCI BusID : PCI:6:0:0`. If you have multiple GPUs on your system, pick the one you'd like serving as Unity's display device. 
+
+3. Configure Xorg:
+
+    `sudo nvidia-xconfig -a --allow-empty-initial-configuration --virtual=3200x1800 --busid BUS_ID `
+
+    With `BUS_ID` being the value found above. Ensure that the file `/etc/X11/xorg.conf` has been created or edited. 
+
+    Reboot after this step.
+
+4. Finally, run the commands:
+
+    ```sh
+    export DISPLAY=:0
+    sudo X :0 &
+    ```
+
+    `export DISPLAY=:0` must be run for every new shell session. `sudo X :0 &` must be run after a reboot.
+
+#### Troubleshooting 
+* If you're getting errors related to `ALSA lib`, install `pulseaudio`.
+    - Ubuntu:
+    `sudo apt-get install pulseaudio`
+    - Red Hat:
+    `sudo yum install pulseaudio`
+
 ## Conventions
 
 __TESSE__ uses the following conventions.
@@ -208,6 +250,7 @@ However, most develops assume 1 unit corresponds to 1 meter by convention .
 We use this convention with __TESSE__.
 
 In addition, the acceleration due to gravity is 9.8 m/s^2.
+
 
 ## Disclaimer
 
