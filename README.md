@@ -11,7 +11,7 @@ The core features of __TESSE__ include the following.
 - A user can configure various aspects of the agent, such as camera locations, image sizes, and toggling collisions.
 - There are various control paradigms for the agent.
 - There are various time paradigms, as well.
-- Network interfaces are available to send data back and forth between Unity. The [TESSE_interface](../TESSE_interface) provides a python package that uses the network interface. This package is compatible with multiple versions of python and has minimal dependencies.
+- Network interfaces are available to send data back and forth between Unity. The [TESSE_interface](../../../TESSE_interface) provides a python package that uses the network interface. This package is compatible with multiple versions of python and has minimal dependencies.
 
 The capabilities of __TESSE__ encompass many aspects of similar systems used for robotics and reinforcement learning in a single framework. 
 However, existing systems often require multiple packages and a large amount of software integration to deliver the same set of functionality. 
@@ -34,7 +34,7 @@ Others may want to develop their own Unity environment with __TESSE__ in order t
 
 For most users, the simplest thing to do is:
 1. Obtain a Unity build with __TESSE__ from the authors.
-2. Obtain [TESSE_interface](../TESSE_interface), which provides a Python package to interact with the Unity build. Follow instructions there for using it.
+2. Obtain [TESSE_interface](../../../TESSE_interface), which provides a Python package to interact with the Unity build. Follow instructions there for using it.
 
 ### Unity Developers
 
@@ -50,7 +50,7 @@ cd [Unity Project]/Assets
 git submodule add git@github.mit.edu:TESS/TESSE_core.git TESSE
 ```
 
-For an example of how this repository integrates into a full simulation build, see [the TESSE open source project](../TESSE_open_source).
+For an example of how this repository integrates into a full simulation build, see [tesse-example-project](../../../tesse-example-project).
 
 __Scenes__
 
