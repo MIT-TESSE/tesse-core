@@ -40,6 +40,7 @@ For most users, the simplest thing to do is:
 
 This repository contains the core components of the __TESSE__ simulation including materials, interfaces and agents.
 It is meant to be included into a full Unity project that contains build settings, scenes, third party asset packages, custom assets, etc.
+Unity 2019.1 or newer are required.
 
 This repository should be included in your Unity project's `Assets` folder.
 - For non-version controlled projects, navigate to `[Unity Project]/Assets` and clone this repository: `git clone git@github.mit.edu:TESS/TESSE_core.git`.
