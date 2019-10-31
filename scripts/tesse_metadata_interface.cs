@@ -202,7 +202,7 @@ namespace tesse
             //parameter passed to this function
 
             // metadata header with version information
-            metadata_string = "<TESSE_Agent_Metadata_v0.4>\n";
+            metadata_string = "<TESSE_Agent_Metadata_v0.5>\n";
 
             // postion of the agent in the game world 
             metadata_string += "  <position x=\'" + transform.position.x + "\' y=\'" + transform.position.y + "\' z=\'" + transform.position.z + "\'/>\n";
@@ -251,7 +251,7 @@ namespace tesse
                 metadata_string += "  <collider status=\'false\'/>\n";
 
             // add header closure statement
-            metadata_string += "</TESSE_Agent_Metadata_v0.4>\n";
+            metadata_string += "</TESSE_Agent_Metadata_v0.5>\n";
         }
 
         private void met_send(string metadata_string, IPAddress client_ip)

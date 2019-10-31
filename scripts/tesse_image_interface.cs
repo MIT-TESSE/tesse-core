@@ -777,7 +777,7 @@ namespace tesse
             // send camera information back to client
 
             // create camera info xml formatted string
-            string cam_info = "<TESSE_Agent_CameraInfo_v0.4>\n";
+            string cam_info = "<TESSE_Agent_CameraInfo_v0.5>\n";
 
             if (request_cam_id >= agent_cameras.Count)
             {
@@ -796,7 +796,7 @@ namespace tesse
                 }
             }
 
-            cam_info += "</TESSE_Agent_CameraInfo_v0.4>\n";
+            cam_info += "</TESSE_Agent_CameraInfo_v0.5>\n";
 
             byte[] caminfo = Encoding.ASCII.GetBytes(cam_info);
 
