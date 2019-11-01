@@ -64,7 +64,7 @@ In order to add the __TESSE__ agent to your scene, follow these steps:
 Note that __TESSE__ expects [tesse_multiscene](Scenes/tesse_multiscene.unity) to be at index 0 in the build order.
 3. Toggle the check mark in the build settings to specify which scenes you want added to your Unity build.
 
-An over video of this process is described [here](https://youtu.be/MQKJfZCAEa8?t=102).
+An overview video of this process is described [here](https://youtu.be/MQKJfZCAEa8?t=102).
 
 ## Capabilities
 
