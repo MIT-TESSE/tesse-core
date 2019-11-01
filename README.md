@@ -1,4 +1,4 @@
-# TESSE_core
+# tesse-core
 
 __TESSE__ is an open-source Unity plugin that enables users to develop robotic, computer vision and reinforcement learning technologies. 
 The large amount of data often required for these applications makes real-world data collection difficult; 
