@@ -193,7 +193,7 @@ public class object_segmentation : MonoBehaviour {
         }
     }
 
-    private Color get_object_segmentation_color_by_name(string name)
+    public Color get_object_segmentation_color_by_name(string name)
     {
         /* 
          * This function will look at the object name and compare it against the object_category mapping dictionary

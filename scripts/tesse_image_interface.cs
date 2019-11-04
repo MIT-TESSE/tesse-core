@@ -98,6 +98,8 @@ namespace tesse
         int request_height = -1; // height of image requested in pixels
         int request_cam_id = -1; // id of camera requested, this is the camera's position in the agent_cameras List
         float request_fov = -1; // field of view of the camera
+        float request_nearClipPlane = -1; // near clip plane of the camera
+        float request_farClipPlane = -1; // far clip plane of the camera
         float request_cam_x = -1; // x position of the camera relative to the agent; also used for x coordinate of the camera rotation matrix
         float request_cam_y = -1; // y position of the camera relative to the agent; also used for y coordinate of the camera rotation matrix
         float request_cam_z = -1; // z position of the camera relative to the agent; also used for z coordinate of the camera rotation matrix
@@ -309,7 +311,7 @@ namespace tesse
                             cam_info_request_flag = true; // flag to signal command to Unity Update() thread
                         }
                     }
-                    else if ((data.Length == 20) && (System.Convert.ToChar(data[0]) == 's') && (System.Convert.ToChar(data[1]) == 'C')
+                    else if ((data.Length >= 20) && (System.Convert.ToChar(data[0]) == 's') && (System.Convert.ToChar(data[1]) == 'C')
                       && (System.Convert.ToChar(data[2]) == 'a') && (System.Convert.ToChar(data[3]) == 'R'))
                     {
                         // set camera resolution requested
@@ -318,10 +320,20 @@ namespace tesse
                             // cache requester's ip address for response
                             img_client_addr = ip.Address;
                             // requested parameters
-                            request_height = System.BitConverter.ToInt32(data, 4); // new camera height (rows)
-                            request_width = System.BitConverter.ToInt32(data, 8); // new camera width (cols)
-                            request_fov = System.BitConverter.ToSingle(data, 12); // new camera field of view, in degrees
-                            request_cam_id = System.BitConverter.ToInt32(data, 16); // id of camera to change the values on, -1 means all cameras
+                            request_cam_id = System.BitConverter.ToInt32(data, 4); // id of camera to change the values on, -1 means all cameras
+                            request_height = System.BitConverter.ToInt32(data, 8); // new camera height (rows)
+                            request_width = System.BitConverter.ToInt32(data, 12); // new camera width (cols)
+                            request_fov = System.BitConverter.ToSingle(data, 16); // new camera field of view, in degrees
+
+                            if (data.Length >= 24)
+                                request_nearClipPlane = System.BitConverter.ToSingle(data, 20);
+                            else
+                                request_nearClipPlane = -1;
+
+                            if (data.Length >= 28)
+                                request_farClipPlane = System.BitConverter.ToSingle(data, 24);
+                            else
+                                request_farClipPlane = -1;
 
                             cam_param_request_flag = true; // flag to signal command to Unity Update() thread
                         }
@@ -336,11 +348,11 @@ namespace tesse
                             img_client_addr = ip.Address;
                             // requested parameters
                             //all positions are relative to the TESSE agent center point
-                            request_cam_x = System.BitConverter.ToSingle(data, 4); // new camera offset in x dimension, in meters
-                            request_cam_y = System.BitConverter.ToSingle(data, 8); // new camera offset in y dimension, in meters
-                            request_cam_z = System.BitConverter.ToSingle(data, 12); // new camera offset in z dimension, in meters
-                            request_cam_id = System.BitConverter.ToInt32(data, 16); // id of camera to change the values on, -1 means all cameras
-
+                            request_cam_id = System.BitConverter.ToInt32(data, 4); // id of camera to change the values on, -1 means all cameras
+                            request_cam_x = System.BitConverter.ToSingle(data, 8); // new camera offset in x dimension, in meters
+                            request_cam_y = System.BitConverter.ToSingle(data, 12); // new camera offset in y dimension, in meters
+                            request_cam_z = System.BitConverter.ToSingle(data, 16); // new camera offset in z dimension, in meters
+                            
                             cam_pos_request_flag = true; // flag to signal command to Unity Update() thread
                         }
                     }
@@ -354,12 +366,12 @@ namespace tesse
                             img_client_addr = ip.Address;
                             // requested parameters
                             //all rotations are relative to the TESSE agent rotations
-                            request_cam_x = System.BitConverter.ToSingle(data, 4); // new camera quaternion x value
-                            request_cam_y = System.BitConverter.ToSingle(data, 8); // new camera quaternion y value
-                            request_cam_z = System.BitConverter.ToSingle(data, 12); // new camera quaternion z values
-                            request_cam_w = System.BitConverter.ToSingle(data, 16); // new camera quaternion w value
-                            request_cam_id = System.BitConverter.ToInt32(data, 20); // id of camera to change the values on, -1 means all cameras
-
+                            request_cam_id = System.BitConverter.ToInt32(data, 4); // id of camera to change the values on, -1 means all cameras
+                            request_cam_x = System.BitConverter.ToSingle(data, 8); // new camera quaternion x value
+                            request_cam_y = System.BitConverter.ToSingle(data, 12); // new camera quaternion y value
+                            request_cam_z = System.BitConverter.ToSingle(data, 16); // new camera quaternion z values
+                            request_cam_w = System.BitConverter.ToSingle(data, 20); // new camera quaternion w value
+                            
                             cam_rot_request_flag = true; // flag to signal command to Unity Update() thread
                         }
                     }
@@ -603,11 +615,6 @@ namespace tesse
                     // two placeholders are used at the end for future features
                     System.UInt32[] uint_header = new System.UInt32[] { image_tag, image_payload_length, (System.UInt32)img_width, (System.UInt32)img_height, cam_id, image_type, 0, 0 };
 
-                    // create thread object to send image data to client
-                    //this is threaded so that the next camera can be rendered while the 
-                    //previous camera is being sent to the client
-                    //NOTE: these two operations are by far require the longest processing time of the entire system
-                    Thread img_send_thread;
                     if (!cam_req.compressed && cam_req.single_channel)
                     {
                         // send single channel image back to client
@@ -630,9 +637,8 @@ namespace tesse
                         byte[] p_header = uint_header.SelectMany(System.BitConverter.GetBytes).ToArray();
                         // send individual image header to client, this is fast
                         send_img_data(p_header);
-                        // create thread to send image payload to client, this isn't as fast so we thread to hide the transmission
-                        //behind rendering other cameras
-                        img_send_thread = new Thread(() => send_img_data(temp));
+                        // send image payload to client
+                        send_img_data(temp);
                     }
                     else if (cam_req.compressed && !cam_req.single_channel)
                     {
@@ -644,8 +650,8 @@ namespace tesse
                         byte[] p_header = uint_header.SelectMany(System.BitConverter.GetBytes).ToArray();
                         // send indvidual image header
                         send_img_data(p_header);
-                        // create thread to send image payload
-                        img_send_thread = new Thread(() => send_img_data(temp));
+                        // send image payload
+                        send_img_data(temp);
                     }
                     else
                     {
@@ -655,14 +661,10 @@ namespace tesse
                         // send individual image header information, length isn't modified since uncompressed three channel
                         //was assumed on header creation
                         send_img_data(p_header);
-                        // create thread to send image payload back to user
-                        img_send_thread = new Thread(() => send_img_data(temp_img.ToArray()));
+                        // send image payload back to user
+                        send_img_data(temp_img.ToArray());
                     }
-                    img_send_thread.Start();
 
-                    // wait on last image payload send thread to complete before continuing
-                    if (cam_req.cam_requested == cams_requested[cams_requested.Count - 1].cam_requested) // wait on last image to finish
-                        img_send_thread.Join();
                 }
                 else
                 {
@@ -775,7 +777,7 @@ namespace tesse
             // send camera information back to client
 
             // create camera info xml formatted string
-            string cam_info = "<TESSE_Agent_CameraInfo_v0.4>\n";
+            string cam_info = "<TESSE_Agent_CameraInfo_v0.5>\n";
 
             if (request_cam_id >= agent_cameras.Count)
             {
@@ -794,7 +796,7 @@ namespace tesse
                 }
             }
 
-            cam_info += "</TESSE_Agent_CameraInfo_v0.4>\n";
+            cam_info += "</TESSE_Agent_CameraInfo_v0.5>\n";
 
             byte[] caminfo = Encoding.ASCII.GetBytes(cam_info);
 
@@ -927,6 +929,13 @@ namespace tesse
                     agent_cameras[request_cam_id].fieldOfView = request_fov;
                 }
 
+                if (request_nearClipPlane > 0 && request_farClipPlane > 0 && request_nearClipPlane < request_farClipPlane)
+                {
+                    // clip plane change requested
+                    agent_cameras[request_cam_id].nearClipPlane = request_nearClipPlane;
+                    agent_cameras[request_cam_id].farClipPlane = request_farClipPlane;
+                }
+
                 send_camera_info();
 
             }
@@ -965,6 +974,13 @@ namespace tesse
                     {
                         // fov change requested
                         c.fieldOfView = request_fov;
+                    }
+
+                    if (request_nearClipPlane > 0 && request_farClipPlane > 0 && request_nearClipPlane < request_farClipPlane)
+                    {
+                        // clip plane change requested
+                        c.nearClipPlane = request_nearClipPlane;
+                        c.farClipPlane = request_farClipPlane;
                     }
                 }
                 send_camera_info();
