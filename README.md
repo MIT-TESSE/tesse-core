@@ -145,7 +145,7 @@ __TESSE__ was primarily designed to provide a network interface. However, a limi
 Some configuration of __TESSE__ is available via a command line interface. 
 If the name of your Unity build is `tesse.x86_64`, for example, then the list of available arguments are as follows.
 ```
-./tesse.x86_64 [--listen_port <list_port>] [--send_port <send_port> [--set_resolution <height> <width>] [--fullscreen] [--speed <speed>] [--turn_speed <turn_speed>] [--capture_rate <capture_rate>]
+./tesse.x86_64 [--listen_port <list_port>] [--send_port <send_port> [--set_resolution <width> <height>] [--fullscreen] [--speed <speed>] [--turn_speed <turn_speed>] [--capture_rate <capture_rate>]
 ```
 
 - __<listen_port>__ specifies the first port that __TESSE__ binds to to listen for external commands. 
@@ -155,8 +155,8 @@ All ports operate on the UDP protocol.
 - __<send_port>__ specifies the first port that __TESSE__ will use for sending data to clients using the TCP protocol.
 Again, the default value is 9000 and __TESSE__ will use multiple ports: `<send_port>`, `<send_port>+1`, `<send_port>+2`, and `<send_port>+4`.  
 `<send_port>+3` is reserved for future expansion. 
-- __\<height\> and \<width\>__ set the screen resolution of the game. 
-Default values are 768 for `<height>` and 1024 for `<width>`.
+- __\<width\> and \<height\>__ set the screen resolution of the game. 
+Default values are 1024 for `<width>` and 768 for `<height>`.
 - __--fullscreen__ toggles Unity to display the game on your full screen. 
 By default, Unity is run in a window.
 - __\<speed\>__ sets the magnitude of the force when using keyboard controls. 
