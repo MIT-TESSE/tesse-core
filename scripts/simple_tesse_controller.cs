@@ -1,23 +1,23 @@
 ﻿/*
-DISTRIBUTION STATEMENT A. Approved for public release. Distribution is unlimited.
-
-This material is based upon work supported by the Under Secretary of Defense for Research 
-and Engineering under Air Force Contract No. FA8702-15-D-0001. Any opinions, findings, 
-conclusions or recommendations expressed in this material are those of the author(s) and 
-do not necessarily reflect the views of the Under Secretary of Defense for Research and 
-Engineering.
-
-© 2019 Massachusetts Institute of Technology.
-
-MIT Proprietary, Subject to FAR52.227-11 Patent Rights - Ownership by the contractor (May 2014)
-
-The software/firmware is provided to you on an As-Is basis
-
-Delivered to the U.S. Government with Unlimited Rights, as defined in DFARS Part 252.227-7013 
-or 7014 (Feb 2014). Notwithstanding any copyright notice, U.S. Government rights in this work
-are defined by DFARS 252.227-7013 or DFARS 252.227-7014 as detailed above. Use of this work 
-other than as specifically authorized by the U.S. Government may violate any copyrights that 
-exist in this work.
+#**************************************************************************************************
+# Distribution authorized to U.S. Government agencies and their contractors. Other requests for 
+# this document shall be referred to the MIT Lincoln Laboratory Technology Office.
+#
+# This material is based upon work supported by the Under Secretary of Defense for Research and 
+# Engineering under Air Force Contract No. FA8702-15-D-0001. Any opinions, findings, conclusions
+# or recommendations expressed in this material are those of the author(s) and do not necessarily 
+# reflect the views of the Under Secretary of Defense for Research and Engineering.
+# 
+# © 2019 Massachusetts Institute of Technology.
+#
+# The software/firmware is provided to you on an As-Is basis
+#
+# Delivered to the U.S. Government with Unlimited Rights, as defined in DFARS Part 252.227-7013 
+# or 7014 (Feb 2014). Notwithstanding any copyright notice, U.S. Government rights in this work 
+# are defined by DFARS 252.227-7013 or DFARS 252.227-7014 as detailed above. Use of this work other 
+# than as specifically authorized by the U.S. Government may violate any copyrights that exist in 
+# this work.
+#**************************************************************************************************
 */
 
 using UnityEngine;
@@ -101,34 +101,10 @@ public class simple_tesse_controller : MonoBehaviour
 
         if (keyboard_active)
         {
-            //if ( Time.captureFramerate > 0 && Time.timeScale != 0 )
-            //    cmd_time = 1f / System.Convert.ToSingle(Time.captureFramerate); // set command time to single frame
-            /*
-            // fixed frame rate execution logic 
-            if (((exec_time + (Time.fixedDeltaTime*1.5)) >= cmd_time) && Time.captureFramerate > 0)
-            {
-                // execution time reached, reset forces and pause game
-                power_input = new Vector3(0f, 0f, 0f);
-                turn_input = new Vector3(0f, 0f, 0f);
-                exec_time = 0;
-                Time.timeScale = 0; // stops game time advancing, Update() still runs
-            }
-            else if (Time.timeScale == 1 && Time.captureFramerate > 0)
-            {
-                exec_time += Time.time - last_time; // add to execution time
-            }
-            else
-            */
-            {
-                // default to reset input forces if not in fixed frame rate mode
-                power_input = Vector3.zero;
-                turn_input = Vector3.zero;
-            }
+            // default to reset input forces if not in fixed frame rate mode
+            power_input = Vector3.zero;
+            turn_input = Vector3.zero;
             
-            
-            // cache current time for next Update() loop
-            
-
             //*** Keyboard input handling ***//
             //NOTE: force inputs are applied in the FixedUpdate() loop until the next Update()
             if (Input.GetKey(KeyCode.W)) // move forward (Z axis)
@@ -281,7 +257,6 @@ public class simple_tesse_controller : MonoBehaviour
         {
             // fixed frame rate execution logic 
             if ( (cmd_time != 0f) && ((exec_time + (System.Convert.ToSingle(Time.fixedDeltaTime) * 1.5f)) >= cmd_time) && (Time.captureFramerate > 0) ) 
-            //if (((exec_time + (Time.fixedDeltaTime * 1.5)) >= cmd_time) && Time.captureFramerate > 0)
             {
                 // execution time reached, reset forces and pause game
                 power_input = new Vector3(0f, 0f, 0f);
