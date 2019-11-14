@@ -73,7 +73,6 @@ public class object_segmentation : MonoBehaviour {
 
         using (var reader = new StreamReader(csv_path))
         {
-            reader.ReadLine();
             while (!reader.EndOfStream)
             {
                 var line = reader.ReadLine();
@@ -207,6 +206,7 @@ public class object_segmentation : MonoBehaviour {
             // found the color, return it
             return c;
         }
+        print("Unable to get segmentation color for " + name);
         return new Color(0f, 0f, 0f, 0f);
     }
 
