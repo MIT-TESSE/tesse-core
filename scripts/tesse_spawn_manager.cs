@@ -127,19 +127,21 @@ public class tesse_spawn_manager : MonoBehaviour
         // get point in random spawn list
         int idx = Random.Range(0, spawn_points.Count - 1);
 
-        // provide random jitter to the chosen spawn point
-        float offset = Random.Range(-radius, radius);
-        float angle = Random.Range(0, 2*(float)System.Math.PI);
+        Vector3 origin = new Vector3(spawn_points[idx].x, spawn_points[idx].y, spawn_points[idx].z);
+        Vector3 direction = new Vector3();
+        float offset = 0;
+        float angle = 0;
+        do
+        {
+            // provide random jitter to the chosen spawn point
+            offset = Random.Range(0, radius);
+            angle = Random.Range(0, 2 * (float)System.Math.PI);
 
-        // this will select the direction to apply the offset
-        //based on the angle chosen
-        float cx = offset * (float)System.Math.Cos(angle);
-        float cz = offset * (float)System.Math.Sin(angle);
+            direction.x = offset * (float)System.Math.Cos(angle);
+            direction.z = offset * (float)System.Math.Sin(angle);
+        } while (Physics.Raycast(origin, direction, offset)); // Only accept if there are no collisions between to the candidate point and the point from the spawn file
 
-        // get new spawn position with random offset
-        Vector3 new_pos = new Vector3(spawn_points[idx].x +cx, spawn_points[idx].y, spawn_points[idx].z + cz);
-
-        return new_pos;
+        return origin + direction;
     }
 
     public void load_spawn_points(int scene_index=0)
