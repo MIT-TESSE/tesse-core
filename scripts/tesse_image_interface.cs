@@ -406,7 +406,7 @@ namespace tesse
             foreach (var cam_req in cams_requested)
             {
                 Camera c = agent_cameras[cam_req.cam_requested]; // get Unity Camera object reference
-
+ 
                 if (c != null) // ensure camera is valid
                 {
                     int w = 0, h = 0;
@@ -437,9 +437,9 @@ namespace tesse
                     //python package
                     if (cam_req.single_channel)
                         img_data_length += (System.UInt32)(w * h) + 32; // per image header is 32 bytes
-                    else if ( cam_req.cam_requested != 3 )
+                    else if ( cam_req.cam_requested != 3)
                         img_data_length += (System.UInt32)(w * h * 3) + 32;  // per image header is 32 bytes
-                    else if ( cam_req.cam_requested == 3 )
+                    else if ( cam_req.cam_requested == 3)
                         img_data_length += (System.UInt32)(w * h * 4) + 32;  // per image header is 32 bytes, single channel float image
                 }
             }
@@ -490,6 +490,10 @@ namespace tesse
                     // third person camera requested
                     cam = transform.Find("3pv").GetComponent<Camera>();
                 }
+                else if (cam_req.cam_requested == 5)
+                {
+                    cam = transform.Find("instance_segmentation").GetComponent<Camera>();
+                }
 
                 // capture current camera state
                 bool cam_state = cam.enabled;
@@ -532,19 +536,20 @@ namespace tesse
                     rt.filterMode = FilterMode.Point;
                     rt.wrapMode = TextureWrapMode.Clamp;
                     // set the camera target texture
-                    if (cam_req.cam_requested != 3)
+                    // Depth and instance segmentation require seperate render texture
+                    if (cam_req.cam_requested != 3 && cam_req.cam_requested != 5)
                         cam.targetTexture = rt;
-                    else if (cam_req.cam_requested == 3)
+                    else if (cam_req.cam_requested == 3 || cam_req.cam_requested == 5)
                         cam.targetTexture = rtd;
 
                     // create texture object
                     Texture2D tex;
                     
-                    if (cam_req.cam_requested != 3)
+                    if (cam_req.cam_requested != 3)  // if not depth of instance segmentation
                        tex = new Texture2D(img_width, img_height, TextureFormat.RGB24, false); // color image
                     else
                        tex = new Texture2D(img_width, img_height, TextureFormat.RGBA32, false); // 4 channel byte-encoded float used for depth
-                   
+
                     // set texture settings
                     tex.hideFlags = HideFlags.HideAndDontSave;
                     tex.wrapMode = TextureWrapMode.Clamp;
@@ -554,9 +559,9 @@ namespace tesse
                     cam.Render();
 
                     // set the appropriate texture for the desired camera type
-                    if (cam_req.cam_requested != 3)
+                    if (cam_req.cam_requested != 3 && cam_req.cam_requested != 5)
                         RenderTexture.active = rt;
-                    else if (cam_req.cam_requested == 3)
+                    else if (cam_req.cam_requested == 3 || cam_req.cam_requested == 5)
                         RenderTexture.active = rtd;
 
                     // read the data from the GPU texture memory to the CPU
@@ -584,11 +589,10 @@ namespace tesse
                     }
                     else if (!cam_req.compressed && cam_req.single_channel)
                     {
-
                         // tag single channel uncompressed image, not supported
                         img_return_type = "xGRY";
                     }
-                    else if (!cam_req.compressed && !cam_req.single_channel && (cam_req.cam_requested != 3) )
+                    else if (!cam_req.compressed && !cam_req.single_channel && (cam_req.cam_requested != 3 && cam_req.cam_requested != 5) )
                     {
                         // tag for uncompressed three channel image
                         img_return_type = "xRGB";
@@ -597,6 +601,11 @@ namespace tesse
                     {
                         // tag for 4 channel byte-encoded float image
                         img_return_type = "xFLT";
+                    } 
+                    else if( !cam_req.compressed && !cam_req.single_channel && (cam_req.cam_requested == 5))
+                    {
+                        // tag for 4 channel byte-encoded unsigned integer 
+                        img_return_type = "xINT";
                     }
 
                     // remove temporary Texture2D object

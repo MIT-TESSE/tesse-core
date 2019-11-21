@@ -121,6 +121,12 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!20 &595623750 stripped
+Camera:
+  m_CorrespondingSourceObject: {fileID: 950106742, guid: 0d0593ff4e989e843aee3fabf7b0358d,
+    type: 3}
+  m_PrefabInstance: {fileID: 1032221145}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1032221145
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -188,23 +194,19 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 500443803, guid: 0d0593ff4e989e843aee3fabf7b0358d, type: 3}
-      propertyPath: m_Drag
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 500443803, guid: 0d0593ff4e989e843aee3fabf7b0358d, type: 3}
-      propertyPath: m_AngularDrag
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 500443804, guid: 0d0593ff4e989e843aee3fabf7b0358d, type: 3}
-      propertyPath: cmd_time
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5389796154521787638, guid: 0d0593ff4e989e843aee3fabf7b0358d,
-        type: 3}
-      propertyPath: cubeObject
+    - target: {fileID: 950106740, guid: 0d0593ff4e989e843aee3fabf7b0358d, type: 3}
+      propertyPath: instance_seg_replacement_shader
       value: 
-      objectReference: {fileID: 491944670643728471, guid: 62d04581879c933468428ccef89aff4f,
+      objectReference: {fileID: 4800000, guid: db375da7758795c4abc2e5992768b3cd, type: 3}
+    - target: {fileID: 12302934328698795, guid: 0d0593ff4e989e843aee3fabf7b0358d,
         type: 3}
+      propertyPath: agent_cameras.Array.size
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 12302934328698795, guid: 0d0593ff4e989e843aee3fabf7b0358d,
+        type: 3}
+      propertyPath: agent_cameras.Array.data[5]
+      value: 
+      objectReference: {fileID: 595623750}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0d0593ff4e989e843aee3fabf7b0358d, type: 3}

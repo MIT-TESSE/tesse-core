@@ -68,7 +68,6 @@ public class instance_segmentation : MonoBehaviour
         foreach (var r in renderers)
         {
         	var go = r.gameObject;
-        	print("Found game: " + go.name + " with ID: " + go.GetInstanceID());
 
             foreach( var mat in r.sharedMaterials )
             {
@@ -100,9 +99,7 @@ public class instance_segmentation : MonoBehaviour
         byte r = color[0];
         byte g = color[1];
         byte b = color[2];
-        byte a = color[3];
-        print("Using color: (" + r + "," + g + "," + b + " " + a + ")");
-        return new Color(r, g, b, a);
+        return new Color(r / 255.0f, g / 255.0f, b / 255.0f , 0f);
     }
 
     public List<byte> id_to_bytes(int id)
@@ -113,7 +110,6 @@ public class instance_segmentation : MonoBehaviour
 		int r = id % 255;
 		int g = id / 255;
 		int b = id / (int)System.Math.Pow(255, 2);
-		int a = id / (int)System.Math.Pow(255, 3);
-		return new List<byte>() { (byte)r, (byte)g, (byte)b, (byte)a };
+		return new List<byte>() { (byte)r, (byte)g, (byte)b};
     }
 }

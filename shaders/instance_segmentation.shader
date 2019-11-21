@@ -3,9 +3,9 @@
     Properties{
         _MainTex("", 2D) = "white" {}
         _Cutoff("", Float) = 0.5
-        _Color("", Color) = (1,1,1,1)
+        _Color("", Color) = (0, 0, 0, 0)
 
-        _ObjectIDColor("Object Color", Color) = (1,1,1,1) 
+        _ObjectIDColor("Object Color", Color) = (0, 0, 0, 0) 
         _CategoryColor("Catergory Color", Color) = (0,1,0,1)
     }
 
