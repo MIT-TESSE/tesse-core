@@ -101,6 +101,10 @@ namespace tesse
         // reference to hover controller
         private simple_tesse_hover_controller hover_controller = null;
 
+        // Set random seed request
+        private bool seed_flag = false;
+        private int requested_seed = 0;
+
         // scene change request objects
         private int current_scene_index = 1; // index to current scene in the build order
         private int new_scene_index = -1; // requested scene to change to
@@ -273,6 +277,13 @@ namespace tesse
 
                     // reset the command flag
                     set_pos_quat = false;
+                }
+
+                // Set random number seed
+                if (seed_flag)
+                {
+                    UnityEngine.Random.InitState(requested_seed);
+                    seed_flag = false;
                 }
 
                 // change of scene requested; this agent supports having multiple scenes
@@ -662,6 +673,15 @@ namespace tesse
                             send_scene_response(false);
                         }
 
+                    }
+                    else if ((data.Length == 8) && (System.Convert.ToChar(data[0]) == 'S') && (System.Convert.ToChar(data[1]) == 'E')
+                      && (System.Convert.ToChar(data[2]) == 'E') && (System.Convert.ToChar(data[3]) == 'D'))
+                    {
+                        lock (pos_request_lock)
+                        {
+                            seed_flag = true;
+                            requested_seed = System.BitConverter.ToInt32(data, 4);
+                        }
                     }
                     else if ((data.Length == 40) && (System.Convert.ToChar(data[0]) == 'o') && (System.Convert.ToChar(data[1]) == 'S')
                       && (System.Convert.ToChar(data[2]) == 'p') && (System.Convert.ToChar(data[3]) == 'n'))
