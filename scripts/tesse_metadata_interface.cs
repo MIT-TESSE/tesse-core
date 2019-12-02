@@ -103,7 +103,7 @@ namespace tesse
                     string md = null;
 
                     // get agent metadata xml string
-                    get_agent_state_metadata(out md);
+                    get_agent_state_metadata(out md, true);
 
                     // start metadata transmission thread
                     Thread met_send_thread = new Thread(() => met_send(md, met_client_addr));

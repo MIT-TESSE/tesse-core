@@ -413,6 +413,18 @@ public class simple_tesse_controller : MonoBehaviour
         collision_object_name = collision.gameObject.name;
     }
 
+    private void OnCollisionStay(Collision collision)
+    {
+        // This is a Unity callback that is triggers if this object remains collided with 
+        //another object in the scene
+
+        // set collision flag
+        collision_flag = true;
+
+        // get name of object that was collided with to send back as well
+        collision_object_name = collision.gameObject.name;
+    }
+
     //*** access functions for physics information ***//
     public Vector3 get_accleration()
     {
