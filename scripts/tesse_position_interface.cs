@@ -127,6 +127,9 @@ namespace tesse
         // reference to object segmentation
         private object_segmentation os = null;
 
+        // reference to instance segmentation
+        private instance_segmentation instance_seg = null;
+
         // stuff for capture rate testing
         private float cmd_time = 0f;
         private float exec_time = 0f;
@@ -168,6 +171,9 @@ namespace tesse
 
             // get object segmentation object
             os = GetComponentInChildren<object_segmentation>();
+
+            // get instance segmentation object
+            instance_seg = GetComponentInChildren<instance_segmentation>();
 
             // get number of scenes in the build
             num_scenes = SceneManager.sceneCountInBuildSettings;
@@ -1051,6 +1057,15 @@ namespace tesse
                 stc.update_spawn_positions(current_scene_index);
                 // respawn the agent in the new scene
                 stc.respawn_agent();
+            }
+
+            if (instance_seg != null)
+            {
+                print("updating instance segmentation for scene...\n");
+                // set the active scene so that the proper lighting, skybox, etc. are used
+                // TODO do we need to call this twice?
+                SceneManager.SetActiveScene(SceneManager.GetSceneByBuildIndex(current_scene_index));
+                instance_seg.update_instance_segmentation_for_scene(current_scene_index);
             }
 
         }
