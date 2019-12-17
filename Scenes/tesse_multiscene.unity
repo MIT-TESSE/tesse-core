@@ -208,5 +208,9 @@ PrefabInstance:
       propertyPath: agent_cameras.Array.data[5]
       value: 
       objectReference: {fileID: 595623750}
+    - target: {fileID: 500443805, guid: 0d0593ff4e989e843aee3fabf7b0358d, type: 3}
+      propertyPath: hover_height
+      value: 0.5
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0d0593ff4e989e843aee3fabf7b0358d, type: 3}
