@@ -1,21 +1,21 @@
 ﻿/*
 #**************************************************************************************************
-# Distribution authorized to U.S. Government agencies and their contractors. Other requests for 
+# Distribution authorized to U.S. Government agencies and their contractors. Other requests for
 # this document shall be referred to the MIT Lincoln Laboratory Technology Office.
 #
-# This material is based upon work supported by the Under Secretary of Defense for Research and 
+# This material is based upon work supported by the Under Secretary of Defense for Research and
 # Engineering under Air Force Contract No. FA8702-15-D-0001. Any opinions, findings, conclusions
-# or recommendations expressed in this material are those of the author(s) and do not necessarily 
+# or recommendations expressed in this material are those of the author(s) and do not necessarily
 # reflect the views of the Under Secretary of Defense for Research and Engineering.
-# 
+#
 # © 2019 Massachusetts Institute of Technology.
 #
 # The software/firmware is provided to you on an As-Is basis
 #
-# Delivered to the U.S. Government with Unlimited Rights, as defined in DFARS Part 252.227-7013 
-# or 7014 (Feb 2014). Notwithstanding any copyright notice, U.S. Government rights in this work 
-# are defined by DFARS 252.227-7013 or DFARS 252.227-7014 as detailed above. Use of this work other 
-# than as specifically authorized by the U.S. Government may violate any copyrights that exist in 
+# Delivered to the U.S. Government with Unlimited Rights, as defined in DFARS Part 252.227-7013
+# or 7014 (Feb 2014). Notwithstanding any copyright notice, U.S. Government rights in this work
+# are defined by DFARS 252.227-7013 or DFARS 252.227-7014 as detailed above. Use of this work other
+# than as specifically authorized by the U.S. Government may violate any copyrights that exist in
 # this work.
 #**************************************************************************************************
 */
@@ -37,8 +37,8 @@ namespace tesse
         /*
          * This class implements the interface to process position, movement,
          * spawn and scene change requests from a remote client.
-         * It inherits from tesse_base which contains some common convenience 
-         * methods as well as the command line parser. 
+         * It inherits from tesse_base which contains some common convenience
+         * methods as well as the command line parser.
          * tesse_base itself inherits from the Unity Monobehavior class.
         */
 
@@ -121,6 +121,8 @@ namespace tesse
         private bool request_spawned_objects_info = false;
         private Dictionary<int, UnityEngine.GameObject> spawned_objects = new Dictionary<int, UnityEngine.GameObject>();
         public GameObject cubeObject;
+        public GameObject smplFemaleObject;
+        public GameObject smplMaleObject;
         private tesse_spawn_manager spawner; // controls agent spawning
 
 
@@ -230,19 +232,19 @@ namespace tesse
                     {
                         Time.timeScale = 0f;
                     }
-                    
+
                     set_time_scale_flag = false;
                 }
 
                 if (!add_force_flag) // reset force
                 {
-                    // this is done to ensure that any force commands are applied from the Update() where they were 
+                    // this is done to ensure that any force commands are applied from the Update() where they were
                     //recieved until the next Update(); this ensures smooth dynamics and reduces impulse effects
                     //on the simulated IMU
                     force_cmd = Vector3.zero;
                 }
 
-                // note: only a single teleport, force movement OR set position/orientation 
+                // note: only a single teleport, force movement OR set position/orientation
                 //can be requested in a single frame
                 if (teleport_flag) // teleport move requested
                 {
@@ -267,7 +269,7 @@ namespace tesse
                 {
                     // this command directly sets the agent's position
                     //and orientation, cancelling out any physics-based movements
-                    //this is useful if the user desires to use 
+                    //this is useful if the user desires to use
                     //an external physics system, like Gazebo
 
                     // set agent's position in unity (x,y,z)
@@ -297,7 +299,7 @@ namespace tesse
                 //is additively loaded around the agent
                 //scenes are identified by their index in the Unity build order
                 if( change_scene_flag )
-                { 
+                {
                     // unload current scene
                     //this is done in a coroutine to ensure that the current environment
                     //is completely unloaded before beginning to load the new environment
@@ -310,7 +312,7 @@ namespace tesse
                     // load new scene additively
                     SceneManager.LoadScene(current_scene_index, LoadSceneMode.Additive);
                     // wait for the new scene to be loaded and then update the material property
-                    //tags for all materials in the scene to ensure they work with the 
+                    //tags for all materials in the scene to ensure they work with the
                     //segmentation shader
                     StartCoroutine(update_segmentation());
 
@@ -322,7 +324,7 @@ namespace tesse
 
                     spawned_objects.Clear(); // Clear out list of spawned objects
 
-                    // send a response back to the user containing metadata on the newly 
+                    // send a response back to the user containing metadata on the newly
                     //loaded scene, this is sent via TCP
                     send_scene_response(true);
 
@@ -363,18 +365,52 @@ namespace tesse
                     else
                     { // Spawn in a new objects
                         var new_object = new UnityEngine.GameObject();
+
                         if (requested_spawn_object.method == 0)
                         { // add requested object at user location
-                           new_object = Instantiate(cubeObject,
+                          switch (requested_spawn_object.type) {
+                            case 0:
+                              new_object = Instantiate(cubeObject,
+                                 requested_spawn_object.position,
+                                 requested_spawn_object.orientation);
+                               new_object.name = cubeObject.name;
+                              break;
+                            case 1:
+                              new_object = Instantiate(smplFemaleObject,
                                 requested_spawn_object.position,
                                 requested_spawn_object.orientation);
+                              new_object.name = smplFemaleObject.name;
+                              break;
+                            case 2:
+                              new_object = Instantiate(smplMaleObject,
+                                requested_spawn_object.position,
+                                requested_spawn_object.orientation);
+                              new_object.name = smplMaleObject.name;
+                              break;
+                          }
                         } else { // add requested object at random spawn point
-                           new_object = Instantiate(cubeObject,
-                               spawner.get_random_spawn_point(),
-                               UnityEngine.Random.rotation);
+                          switch (requested_spawn_object.type) {
+                            case 0:
+                              new_object = Instantiate(cubeObject,
+                                spawner.get_random_spawn_point(),
+                                UnityEngine.Random.rotation);
+                              new_object.name = cubeObject.name;
+                              break;
+                            case 1:
+                              new_object = Instantiate(smplFemaleObject,
+                                spawner.get_random_spawn_point(),
+                                UnityEngine.Random.rotation);
+                              new_object.name = smplFemaleObject.name;
+                              break;
+                            case 2:
+                              new_object = Instantiate(smplMaleObject,
+                                spawner.get_random_spawn_point(),
+                                UnityEngine.Random.rotation);
+                              new_object.name = smplMaleObject.name;
+                              break;
+                          }
                         }
 
-                        new_object.name = cubeObject.name;
                         spawned_objects.Add(next_spawn_object_id++, new_object);  // Add to dictionary of spawned objects
 
                         // Update semantic segmentation
@@ -385,7 +421,7 @@ namespace tesse
                         mpb.SetColor("_ObjectColor", obj_color); // set the color property; this is used by the UberReplacement shader
                         r.SetPropertyBlock(mpb);
                     }
- 
+
                     send_objects(); // send a response with list of objects
                     spawn_object_flag = false; // reset the command flag
                 }
@@ -400,7 +436,7 @@ namespace tesse
                 // we also look to see if the amount of time that has elsapsed is the requested time (cmd_time) less a single
                 //physics update, this ensures that an addition Update() will not be called and the user specified command time
                 //duration will be respected
-                if ( (cmd_time != 0f) && ((exec_time + (System.Convert.ToSingle(Time.fixedDeltaTime) * 1.5f)) >= cmd_time) && (Time.captureFramerate > 0) ) 
+                if ( (cmd_time != 0f) && ((exec_time + (System.Convert.ToSingle(Time.fixedDeltaTime) * 1.5f)) >= cmd_time) && (Time.captureFramerate > 0) )
                 {
                     force_cmd = Vector3.zero;
                     exec_time = 0f;
@@ -416,7 +452,7 @@ namespace tesse
                         client.Close();
                         stream.Close();
                     }
-                    
+
                 }
                 else if (Time.timeScale == 1 && Time.captureFramerate > 0) // add to the execution timer and continue to execute the action
                 {
@@ -424,7 +460,7 @@ namespace tesse
                 }
                 else if( !add_force_flag ) // fixed frame rate mode is inactive, reset force
                 {
-                    // this is done to ensure that any force commands are applied from the Update() where they were 
+                    // this is done to ensure that any force commands are applied from the Update() where they were
                     //recieved until the next Update(); this ensures smooth dynamics and reduces impulse effects
                     //on the simulated IMU
                     force_cmd = Vector3.zero;
@@ -435,7 +471,7 @@ namespace tesse
                 agent_rigid_body.AddRelativeForce(force_cmd.z, 0.0f, force_cmd.x);
                 // add torque about the agent's y axis by amount requested
                 agent_rigid_body.AddRelativeTorque(0.0f, force_cmd.y, 0.0f);
-               
+
                 // this is the force telemetry broadcast function
                 //when uncommented, it will broadcast all force inputs
                 //from the keyboard via udp on pos_update_port
@@ -443,7 +479,7 @@ namespace tesse
                 //    send_telemetry(true);
             }
         }
-        
+
         void OnApplicationQuit()
         {
             // ensure position udp listener thread is stopped
@@ -579,7 +615,7 @@ namespace tesse
                             {
                                 frame_rate = System.BitConverter.ToInt32(data, 4); // set frame rate provided by user
                                                                                    //NOTE: a frame rate of '0' denotes real-time mode, any positive integer will fix the game
-                                                                                   //time to run at 1/frame_rate per frame, regardless of how much wall time is required for 
+                                                                                   //time to run at 1/frame_rate per frame, regardless of how much wall time is required for
                                                                                    //those frames to be rendered by the machine (e.g. my computer can run 60 fps, but the frame_rate
                                                                                    //is set to 30, therefore 1 second of game time is 0.5 seconds of wall time
                                 mod_frame_rate_flag = true; // flag to signal command to Unity Update() thread
@@ -721,7 +757,7 @@ namespace tesse
                             spawned_objects_to_remove.Clear();
                             for (int idx = 4; idx < data.Length; idx += 4)
                                 spawned_objects_to_remove.Add(System.BitConverter.ToInt32(data, idx));
-                            
+
                             spawn_object_flag = true; // flag to signal command to Unity Update() thread
                             pos_client_addr = pos_request_ip.Address; // set requester's ip address, for confirmation message
                         }
@@ -748,7 +784,7 @@ namespace tesse
             //commands sent by the TESSE interface using the TESSE protocol
             //this function runs in a dedicated thread, seperate from the Unity
             //engine thread(s)
-            // the listener is implemented as tcp to ensure step commands are 
+            // the listener is implemented as tcp to ensure step commands are
             //received from the user, this also allows for a response to be sent
             //back to the user as a blocking listen which is ideal for the
             //fixed capture mode where a user requests an action for a specific duration
@@ -848,7 +884,7 @@ namespace tesse
                             print("execution time is " + exec_time);
                             frame_rate = System.BitConverter.ToInt32(data, 4); // set frame rate provided by user
                                                                                //NOTE: a frame rate of '0' denotes real-time mode, any positive integer will fix the game
-                                                                               //time to run at 1/frame_rate per frame, regardless of how much wall time is required for 
+                                                                               //time to run at 1/frame_rate per frame, regardless of how much wall time is required for
                                                                                //those frames to be rendered by the machine (e.g. my computer can run 60 fps, but the frame_rate
                                                                                //is set to 30, therefore 1 second of game time is 0.5 seconds of wall time
                             mod_frame_rate_flag = true; // flag to signal command to Unity Update() thread
@@ -862,7 +898,7 @@ namespace tesse
         private void send_scene_response(bool valid = true)
         {
             /*
-             * This function sends a response to the client after requesting a scene 
+             * This function sends a response to the client after requesting a scene
              * change, or if a client requests a scene index that does not exist
              * for the current game build.
             */
@@ -1074,14 +1110,14 @@ namespace tesse
         {
             /*
              * This function is a stub for implementation of a send back function
-             * that will provide a remote user with a confirmation of the force 
+             * that will provide a remote user with a confirmation of the force
              * commands sent to the agent. It is currently not implemented and will
              * be included in a future release.
-             * 
+             *
             */
 
             // set tag string for response based on input command
-            //support for fixed capture mode is unnecessary since time 
+            //support for fixed capture mode is unnecessary since time
             //is paused when not actively executing and the commands
             //are sent via tcp to ensure delivery
             byte[] tag;
@@ -1113,7 +1149,7 @@ namespace tesse
                 Vector3 cmd = stc.get_force_command();
                 float force_x = cmd.x;
                 float torque_y = cmd.y;
-                float force_z = cmd.z; 
+                float force_z = cmd.z;
                 float_array = new float[] { image_tag, pos_x, pos_y, pos_z, quat_x, quat_y, quat_z,
                                             quat_w, current_time, force_x, force_z, torque_y };
             }
@@ -1136,7 +1172,7 @@ namespace tesse
         {
             /*
              * This function is a stub for implementation of a send back function
-             * that will provide a remote user with a confirmation of the force 
+             * that will provide a remote user with a confirmation of the force
              * commands sent to the agent. It is currently not implemented and will
              * be included in a future release.
             */
