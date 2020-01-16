@@ -415,11 +415,15 @@ namespace tesse
 
                         // Update semantic segmentation
                         Renderer r = new_object.GetComponent(typeof(Renderer)) as Renderer;
-                        Color obj_color = os.get_object_segmentation_color_by_name(new_object.name);
-                        var mpb = new MaterialPropertyBlock();
-                        r.GetPropertyBlock(mpb); // ensure that we persist the values of the current properties block
-                        mpb.SetColor("_ObjectColor", obj_color); // set the color property; this is used by the UberReplacement shader
-                        r.SetPropertyBlock(mpb);
+                        if (r) 
+                        {
+	                        Color obj_color = os.get_object_segmentation_color_by_name(new_object.name);
+	                        Debug.Log(obj_color);
+	                        var mpb = new MaterialPropertyBlock();
+	                        r.GetPropertyBlock(mpb); // ensure that we persist the values of the current properties block
+	                        mpb.SetColor("_ObjectColor", obj_color); // set the color property; this is used by the UberReplacement shader
+	                        r.SetPropertyBlock(mpb);
+                    	}
                     }
 
                     send_objects(); // send a response with list of objects
