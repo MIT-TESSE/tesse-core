@@ -120,7 +120,7 @@ namespace tesse
         private List<int> spawned_objects_to_remove = new List<int>();
         private bool request_spawned_objects_info = false;
         private Dictionary<int, UnityEngine.GameObject> spawned_objects = new Dictionary<int, UnityEngine.GameObject>();
-        public GameObject cubeObject;
+        public List<GameObject> spawnableObjects;
         private tesse_spawn_manager spawner; // controls agent spawning
 
 
@@ -360,21 +360,21 @@ namespace tesse
                     { // just return information on spawned objects
                         request_spawned_objects_info = false;
                     }
-                    else
+                    else if (requested_spawn_object.index < spawnableObjects.Count)
                     { // Spawn in a new objects
                         var new_object = new UnityEngine.GameObject();
                         if (requested_spawn_object.method == 0)
                         { // add requested object at user location
-                           new_object = Instantiate(cubeObject,
+                           new_object = Instantiate(spawnableObjects[requested_spawn_object.index],
                                 requested_spawn_object.position,
                                 requested_spawn_object.orientation);
                         } else { // add requested object at random spawn point
-                           new_object = Instantiate(cubeObject,
+                           new_object = Instantiate(spawnableObjects[requested_spawn_object.index],
                                spawner.get_random_spawn_point(),
                                UnityEngine.Random.rotation);
                         }
 
-                        new_object.name = cubeObject.name;
+                        new_object.name = spawnableObjects[requested_spawn_object.index].name;
                         spawned_objects.Add(next_spawn_object_id++, new_object);  // Add to dictionary of spawned objects
 
                         // Update semantic segmentation
@@ -384,6 +384,10 @@ namespace tesse
                         r.GetPropertyBlock(mpb); // ensure that we persist the values of the current properties block
                         mpb.SetColor("_ObjectColor", obj_color); // set the color property; this is used by the UberReplacement shader
                         r.SetPropertyBlock(mpb);
+                    }
+                    else
+                    {
+                        print("Unable to spawn object at index " + requested_spawn_object.index + ". Number of spawnable objects is " + spawnableObjects.Count + ".");
                     }
  
                     send_objects(); // send a response with list of objects
@@ -696,7 +700,7 @@ namespace tesse
                         //NOTE: this command can be used even when the game is paused in fixed frame rate mode
                         lock (pos_request_lock)
                         {
-                            requested_spawn_object.type = System.BitConverter.ToInt32(data, 4);
+                            requested_spawn_object.index = System.BitConverter.ToInt32(data, 4);
                             requested_spawn_object.method = System.BitConverter.ToInt32(data, 8);
                             requested_spawn_object.position.x = System.BitConverter.ToSingle(data, 12); // x position (right)
                             requested_spawn_object.position.y = System.BitConverter.ToSingle(data, 16); // y position (up)
@@ -951,7 +955,7 @@ namespace tesse
             foreach (KeyValuePair<int, UnityEngine.GameObject> kvp in spawned_objects)
             {
                 response += "  <object>\n";
-                response += "    <type>CUBE</type>\n"; // only object currently supported
+                response += "    <type>" + kvp.Value.name + "</type>\n";
                 response += "    <id>" + kvp.Key + "</id>\n";
                 response += "    <position x =\'" + kvp.Value.transform.position.x + "\' y=\'" + kvp.Value.transform.position.y + "\' z=\'" + kvp.Value.transform.position.z + "\'/>\n";
                 response += "    <quaternion x =\'" + kvp.Value.transform.rotation.x + "\' y=\'" + kvp.Value.transform.rotation.y + "\' z=\'" + kvp.Value.transform.rotation.z + "\' w=\'" + kvp.Value.transform.rotation.w + "\'/>\n";
@@ -1156,7 +1160,7 @@ namespace tesse
     // Data structure for spawning objects
     public struct SpawnObject
     {
-        public Int32 type;
+        public Int32 index;
         public Int32 method; // 0 = User specified, 1 = Random
         public Vector3 position;
         public Quaternion orientation;
