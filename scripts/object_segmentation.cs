@@ -57,8 +57,6 @@ public class object_segmentation : MonoBehaviour {
         position_interface = GetComponentInParent<tesse_position_interface>();
 
         init_segmentation_camera(cam, seg_replacement_shader, 0, Color.white);
-
-        update_segmentation_for_scene(0); // update all the material tags of objects contained in the currently loaded scenes
     }
 
     private void parse_color_mapping_csv( string csv_path )
