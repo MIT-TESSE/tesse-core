@@ -135,6 +135,7 @@ public class tesse_spawn_manager : MonoBehaviour
              * P - write points to file
              * K - delete previous point
              * L - delete all points
+             * ; - load points from file
              */
 
             if (Input.GetKeyDown(KeyCode.O))
@@ -166,6 +167,13 @@ public class tesse_spawn_manager : MonoBehaviour
             {
                 sceneSpawnPoints.spawnPoints[0].points.Clear();
                 print("Cleared points.");
+            }
+
+            if (Input.GetKeyDown(KeyCode.Semicolon))
+            {
+                JsonUtility.FromJsonOverwrite(File.ReadAllText(sceneSpawnFile), sceneSpawnPoints);
+                sceneSpawnPoints.AddIfMissing(objects);
+                print("Loaded points from " + sceneSpawnFile + ".");
             }
         }
     }
