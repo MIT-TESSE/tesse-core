@@ -370,7 +370,7 @@ namespace tesse
                                 requested_spawn_object.orientation);
                         } else { // add requested object at random spawn point
                            new_object = Instantiate(spawnableObjects[requested_spawn_object.index],
-                               spawner.get_random_spawn_point(),
+                               spawner.get_random_spawn_point(spawnableObjects[requested_spawn_object.index].name),
                                UnityEngine.Random.rotation);
                         }
 
