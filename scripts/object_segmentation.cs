@@ -110,12 +110,46 @@ public class object_segmentation : MonoBehaviour {
         cam.clearFlags = CameraClearFlags.SolidColor;
     }
 
+    void write_scene_object_bounds_to_csv(int scene_index)
+    {
+        /*
+         * A function to write all object bounds in a scene to a CSV in the StreamingAssets path.
+         * This function is called upon scene initialization in `update_segmentation_for_scene`. 
+         * This is a temporary implementation so should eventually be refactored.
+        */
+        var renderers = Object.FindObjectsOfType<Renderer>();
+
+        string point_file_path  = Application.streamingAssetsPath + "/" + SceneManager.GetSceneByBuildIndex(scene_index).name + "_scene_object_bounds.csv";
+        StreamWriter csvWriter = new StreamWriter(point_file_path);
+
+        foreach( var r in renderers )
+        {
+            var go = r.gameObject;
+            var bounds = r.bounds;
+
+            // Write (x, y, z, height, width, length game object name)
+            var line = string.Format("{0},{1},{2},{3},{4},{5},{6}", 
+                                     bounds.center.x,
+                                     bounds.center.y,
+                                     bounds.center.z,
+                                     bounds.size.x,
+                                     bounds.size.y,
+                                     bounds.size.z,
+                                     go.name);
+            csvWriter.WriteLine(line);
+            csvWriter.Flush();
+        }
+
+        csvWriter.Close();
+    }
+
     public void update_segmentation_for_scene(int scene_index)
     {
         /* 
          * This function finds all renderers in the scene and sets the _ObjectColor parameter in their material properties block
          * based on the class label color mapping provided in the segmentation_class_mapping.csv file.
         */
+        write_scene_object_bounds_to_csv(scene_index);
 
         // setup for objects
         var renderers = Object.FindObjectsOfType<Renderer>();
