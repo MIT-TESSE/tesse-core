@@ -26,6 +26,58 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using tesse;
+
+[System.Serializable]
+public class SpawnPoints
+{
+    public string name;
+    public List<Vector3> points;
+
+    public SpawnPoints(string objectName)
+    {
+        name = objectName;
+        points = new List<Vector3>();
+    }
+}
+
+[System.Serializable]
+public class ListOfSpawnPoints
+{
+    public List<SpawnPoints> spawnPoints;
+
+    public ListOfSpawnPoints(List<string> names)
+    {
+        spawnPoints = new List<SpawnPoints>();
+        foreach (var name in names)
+        {
+            spawnPoints.Add(new SpawnPoints(name));
+        }
+    }
+
+    public void AddIfMissing(List<string> names)
+    {
+        /* Add empty spawn points, if they were missing.
+         * Useful when attempting to load from a file.
+         */
+        bool exists;
+        foreach (var name in names)
+        {
+            exists = false;
+            for (var i = 0; i < spawnPoints.Count; i++)
+            {
+                if (spawnPoints[i].name == name)
+                {
+                    exists = true;
+                    break;
+                }
+            }
+
+            if (!exists)
+                spawnPoints.Add(new SpawnPoints(name));
+        }
+    }
+}
 
 public class tesse_spawn_manager : MonoBehaviour
 {
@@ -36,23 +88,27 @@ public class tesse_spawn_manager : MonoBehaviour
          * these points to provide valid spawn locations to the agent
          * on a respawn.
     */
+    
+    private bool enteredSpawnPointCaptureMode = false; // spawn point capture mode flag
+    private List<string> objects = new List<string>(); // list of all spawnable objects in scene
 
-    // spawn point capture mode flag
-    private bool spawn_point_capture_mode = false;
+    private Bounds sceneBounds = new Bounds(); // bounds of the current scene
+    private ListOfSpawnPoints sceneSpawnPoints; // spawn points for the current current
+    private string sceneSpawnFile; // file with spawn points for the current scene
 
-    // list of spawn points for the scene
-    private List<Vector3> spawn_points = new List<Vector3>();
+    private float startHoldOKeyTime = 0f;
 
-    // file path for spawn points
-    private string file_path = null;
-
-    // create csv object
-    private StringBuilder csv = new StringBuilder();
-
-    private void Awake()
+    private void Start()
     {
         // set random seed
         Random.InitState((int)System.DateTime.Now.Ticks);
+
+        tesse_position_interface position_interface = GetComponentInParent<tesse_position_interface>();
+        objects.Add(position_interface.name);
+        for (var i = 0; i < position_interface.spawnableObjects.Count; i++)
+        {
+            objects.Add(position_interface.spawnableObjects[i].name);
+        }
 
         // load spawn points from csv, if it exists
         load_spawn_points();
@@ -61,165 +117,130 @@ public class tesse_spawn_manager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //NOTE: If spawn point capture mode is entered, the game must be closed properly
-        //via the Escape (Esc) key.
-        if( spawn_point_capture_mode ) // this mode can be entered via the keyboard
+        // Determine if user enters spawn point mode. Note that you stay in this mode once entered.
+        if (Input.GetKey(KeyCode.LeftShift) &&
+            Input.GetKey(KeyCode.LeftControl) &&
+            Input.GetKeyDown(KeyCode.G) &&
+            !enteredSpawnPointCaptureMode)
         {
-            // capture a new spawn point every second
-            csv.AppendLine(capture_spawn_point());
+            print("You have entered spawn point mode.");
+            enteredSpawnPointCaptureMode = true;
+        }
 
-            // spawn point capture is active
-            if ((Input.GetKey(KeyCode.LeftShift)) && (Input.GetKey(KeyCode.LeftControl)) && (Input.GetKeyDown(KeyCode.G)))
+        if (enteredSpawnPointCaptureMode)
+        {
+            /* Key code:
+             * I - save current point
+             * O - save points once per second
+             * P - write points to file
+             * K - delete previous point
+             * L - delete all points
+             * ; - load points from file
+             */
+
+            if (Input.GetKeyDown(KeyCode.O))
             {
-                // exit spawn point capture mode
-                spawn_point_capture_mode = false;
+                startHoldOKeyTime = Time.time;
+            }
 
-                // write captured data to file
-                File.AppendAllText(file_path, csv.ToString());
+            if (Input.GetKeyDown(KeyCode.I) || (Input.GetKey(KeyCode.O) && Time.time - startHoldOKeyTime > 1.0))
+            {                
+                sceneSpawnPoints.spawnPoints[0].points.Add(transform.position);
+                print("Added new point at " + sceneSpawnPoints.spawnPoints[0].points[sceneSpawnPoints.spawnPoints[0].points.Count - 1] +
+                    " for " + sceneSpawnPoints.spawnPoints[0].points.Count + " total points.");
+                startHoldOKeyTime = Time.time;
+            }
 
-                // clear string builder list
-                csv.Clear();
+            if (Input.GetKeyDown(KeyCode.P))
+            {
+                System.IO.File.WriteAllText(sceneSpawnFile, JsonUtility.ToJson(sceneSpawnPoints, true));
+                print("Saved points to " + sceneSpawnFile + ".");
+            }
+
+            if (Input.GetKeyDown(KeyCode.K) && sceneSpawnPoints.spawnPoints[0].points.Count>0)
+            {
+                print("Removed last point at " + sceneSpawnPoints.spawnPoints[0].points[sceneSpawnPoints.spawnPoints[0].points.Count - 1] + ".");
+                sceneSpawnPoints.spawnPoints[0].points.RemoveAt(sceneSpawnPoints.spawnPoints[0].points.Count - 1);
+            }
+
+            if (Input.GetKeyDown(KeyCode.L))
+            {
+                sceneSpawnPoints.spawnPoints[0].points.Clear();
+                print("Cleared points.");
+            }
+
+            if (Input.GetKeyDown(KeyCode.Semicolon))
+            {
+                JsonUtility.FromJsonOverwrite(File.ReadAllText(sceneSpawnFile), sceneSpawnPoints);
+                sceneSpawnPoints.AddIfMissing(objects);
+                print("Loaded points from " + sceneSpawnFile + ".");
             }
         }
-        else // spawn point capture mode is inactive
-        {
-            // spawn point capture is not active
-            if( (Input.GetKey(KeyCode.LeftShift)) && (Input.GetKey(KeyCode.LeftControl)) && (Input.GetKeyDown(KeyCode.G)) )
-            {
-                // enter spawn point capture mode
-                spawn_point_capture_mode = true;
+    }
 
-                // clear any points that are in csv string builder
-                csv.Clear();
+    public Vector3 get_random_spawn_point(string name = "", float radius = 2.0f)
+    {
+        if (name == "") 
+            name = sceneSpawnPoints.spawnPoints[0].name; // default to first object in list (the "agent")
+
+        foreach (var spawnPoints in sceneSpawnPoints.spawnPoints)
+        {
+            if (spawnPoints.name == name && spawnPoints.points.Count>0) // There are spawn points defined
+            {
+                int idx = Random.Range(0, spawnPoints.points.Count);
+                Vector3 origin = spawnPoints.points[idx];
+
+                // provide random jitter to the chosen spawn point
+                Vector3 direction = new Vector3();
+                float offset;
+                float angle;
+                do
+                {
+                    offset = Random.Range(0, radius);
+                    angle = Random.Range(0, 2 * (float)System.Math.PI);
+
+                    direction.x = offset * (float)System.Math.Cos(angle);
+                    direction.z = offset * (float)System.Math.Sin(angle);
+                } while (Physics.Raycast(origin, direction, offset)); // Only accept if there are no collisions between to the candidate point and the point from the spawn file
+
+                return origin + direction;
             }
         }
+
+        // Sample randomly from the scene bounds as a fallback
+        return new Vector3(
+            Random.Range(sceneBounds.min.x, sceneBounds.max.x),
+            Random.Range(sceneBounds.min.y, sceneBounds.max.y),
+            Random.Range(sceneBounds.min.z, sceneBounds.max.z)
+            );
+
     }
 
-    private void OnApplicationQuit()
+    public void load_spawn_points(int scene_index = 0)
     {
-        // ensure that any spawn points that are currently cached get written to file
-        if( (csv.Length > 0) && (file_path != null) )
+        sceneSpawnFile = Application.streamingAssetsPath + Path.DirectorySeparatorChar + SceneManager.GetSceneByBuildIndex(scene_index).name + ".points";
+        if (File.Exists(sceneSpawnFile))
         {
-            File.AppendAllText(file_path, csv.ToString());
-        }
-    }
-
-    IEnumerator wait_for_seconds( float wait_sec = 1.0f )
-    {
-        // convience function that waits for wait_sec number of
-        //seconds to pass before continuing the function
-        yield return new WaitForSeconds(wait_sec);
-    }
-
-    private string capture_spawn_point( float wait_time = 1.0f )
-    {
-        // wait for wait_time()
-        StartCoroutine(wait_for_seconds(wait_time));
-
-        // write current position of tesse agent to file
-        string new_line = string.Format("{0},{1},{2}", transform.position.x, transform.position.y, transform.position.z);
-
-        return new_line;
-    }
-
-    public Vector3 get_random_spawn_point( float radius = 2.0f)
-    {
-        // get point in random spawn list
-        int idx = Random.Range(0, spawn_points.Count - 1);
-
-        Vector3 origin = new Vector3(spawn_points[idx].x, spawn_points[idx].y, spawn_points[idx].z);
-        Vector3 direction = new Vector3();
-        float offset = 0;
-        float angle = 0;
-        do
-        {
-            // provide random jitter to the chosen spawn point
-            offset = Random.Range(0, radius);
-            angle = Random.Range(0, 2 * (float)System.Math.PI);
-
-            direction.x = offset * (float)System.Math.Cos(angle);
-            direction.z = offset * (float)System.Math.Sin(angle);
-        } while (Physics.Raycast(origin, direction, offset)); // Only accept if there are no collisions between to the candidate point and the point from the spawn file
-
-        return origin + direction;
-    }
-
-    public void load_spawn_points(int scene_index=0)
-    {
-        // clear any currently loaded spawn points
-        spawn_points.Clear();
-
-        // get name of spawn points csv file
-        file_path = Application.streamingAssetsPath + "/" + SceneManager.GetSceneByBuildIndex(scene_index).name + "_spawn_points.csv";
-
-        // if a spawn points csv does not exist, unity will create a large number
-        //of spawn points at random within the bounding volume of the scene. These
-        //will probably not be very good, but a user can use them to find a good
-        //starting point and then enter spawn point capture mode to generate a good
-        //set of spawn points to save to the spawn points csv that will be used
-        //the next time the scene is loaded.
-        if (!File.Exists(file_path))
-        {
-            print(file_path);
-            // randomly sample spawn points from a bounding volume
-            generate_spawn_points_from_bounding_volume();
+            JsonUtility.FromJsonOverwrite(File.ReadAllText(sceneSpawnFile), sceneSpawnPoints);
+            sceneSpawnPoints.AddIfMissing(objects);
         }
         else
         {
-            // load spawn points from spawn points csv file
-            using (var reader = new StreamReader(file_path))
+            sceneSpawnPoints = new ListOfSpawnPoints(objects);
+        }
+
+        // this is a fallback in case a scene doesn't have pre-generated spawn points
+        var renderers = FindObjectsOfType<Renderer>();
+        sceneBounds = new Bounds();
+        if (renderers.Length>0)
+        {
+            sceneBounds = renderers[0].bounds; // get total bounding volume of all objects in the scene
+
+            for (int i = 1; i < renderers.Length; ++i)
             {
-                reader.ReadLine();
-                while (!reader.EndOfStream)
-                {
-                    var line = reader.ReadLine(); // read a line of the file
-                    var values = line.Split(','); // csv is comma delimited
-
-                    float x = 0, y = 0, z = 0;
-
-                    // in the csv column 0 is the x position, column 1 is the y position, column 2 is the z position 
-                    if (float.TryParse(values[0], out x) && float.TryParse(values[1], out y) && float.TryParse(values[2], out z))
-                    {
-                        spawn_points.Add(new Vector3(x, y, z)); // add this point to the internal spawn points list
-                    }
-                    else
-                    {
-                        print("failed to parse csv values!");
-                    }
-                }
+                sceneBounds.Encapsulate(renderers[i].bounds);
             }
         }
     }
 
-    private void generate_spawn_points_from_bounding_volume(int points_to_generate=20000)
-    {
-        // this is a fallback in case a scene doesn't have pre-generated spawn points
-        //it is.... non-optimal
-        // This function generates points_to_generate random points drawn from the total
-        //bounding volume of the scene.
-        var rends = FindObjectsOfType<Renderer>();
-        if (rends.Length == 0)
-        {
-            // if the scene is empty, add a single (0, 0, 0) spawn point and return
-            spawn_points.Add(Vector3.zero);
-            return;
-        }
-
-        Bounds b = rends[0].bounds; // get total bounding volume of all objects in the scene
-
-        for (int i = 1; i < rends.Length; ++i)
-        {
-            b.Encapsulate(rends[i].bounds);
-        }
-
-        // randomly sample 20000 points from the bounding volume
-        for ( int i=0; i < points_to_generate; ++i )
-        {
-            float x = Random.Range( b.center.x - (b.extents.x/2), b.center.x + (b.extents.x/2) );
-            float y = Random.Range( b.center.y - (b.extents.y/2), b.center.y + (b.extents.y/2) );
-            float z = Random.Range( b.center.z - (b.extents.z/2), b.center.z + (b.extents.z/2) );
-            spawn_points.Add(new Vector3(x, y, z));
-        }
-
-    }
 }

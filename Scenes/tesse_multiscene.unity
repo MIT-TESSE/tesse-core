@@ -212,5 +212,22 @@ PrefabInstance:
       propertyPath: hover_height
       value: 0.5
       objectReference: {fileID: 0}
+    - target: {fileID: 5389796154521787638, guid: 0d0593ff4e989e843aee3fabf7b0358d,
+        type: 3}
+      propertyPath: spawnableObjects.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5389796154521787638, guid: 0d0593ff4e989e843aee3fabf7b0358d,
+        type: 3}
+      propertyPath: spawnableObjects.Array.data[0]
+      value: 
+      objectReference: {fileID: 491944670643728471, guid: 62d04581879c933468428ccef89aff4f,
+        type: 3}
+    - target: {fileID: 5389796154521787638, guid: 0d0593ff4e989e843aee3fabf7b0358d,
+        type: 3}
+      propertyPath: spawnableObjects.Array.data[1]
+      value: 
+      objectReference: {fileID: 491944670643728471, guid: c43af38d85b6cb34cb652335391089c0,
+        type: 3}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0d0593ff4e989e843aee3fabf7b0358d, type: 3}

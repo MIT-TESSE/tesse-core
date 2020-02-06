@@ -27,6 +27,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using System.Text;
+using tesse;
 
 public class object_segmentation : MonoBehaviour {
 
@@ -43,6 +44,8 @@ public class object_segmentation : MonoBehaviour {
 
     private Camera cam; // camera that this script is attached to
 
+    private tesse_position_interface position_interface = null;
+
     // Use this for initialization
     void Awake()
     {
@@ -50,10 +53,10 @@ public class object_segmentation : MonoBehaviour {
             seg_replacement_shader = Shader.Find("TESSE/TESSE_segmentation"); // default shader if it isn't specified
 
         cam = GetComponent<Camera>();
+        
+        position_interface = GetComponentInParent<tesse_position_interface>();
 
         init_segmentation_camera(cam, seg_replacement_shader, 0, Color.white);
-
-        update_segmentation_for_scene(0); // update all the material tags of objects contained in the currently loaded scenes
     }
 
     private void parse_color_mapping_csv( string csv_path )
@@ -117,8 +120,19 @@ public class object_segmentation : MonoBehaviour {
          * based on the class label color mapping provided in the segmentation_class_mapping.csv file.
         */
 
-        // setup for objects
-        var renderers = Object.FindObjectsOfType<Renderer>();
+        // setup for objects - gets objects in scene, plus what objects can be spawned in
+        var sceneRenderers = Object.FindObjectsOfType<Renderer>();
+
+        var objectRenderers = new Renderer[position_interface.spawnableObjects.Count];
+        for (var i = 0; i < position_interface.spawnableObjects.Count; i++)
+        {
+            objectRenderers[i] = position_interface.spawnableObjects[i].GetComponent<Renderer>();
+        }
+
+        var renderers = new Renderer[sceneRenderers.Length + objectRenderers.Length];
+        sceneRenderers.CopyTo(renderers, 0);
+        objectRenderers.CopyTo(renderers, sceneRenderers.Length);        
+
         var mpb = new MaterialPropertyBlock();
 
         HashSet<string> rends = new HashSet<string>();

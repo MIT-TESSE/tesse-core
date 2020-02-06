@@ -11,7 +11,7 @@ The core features of __TESSE__ include the following.
 - A user can configure various aspects of the agent, such as camera locations, image sizes, and toggling collisions.
 - There are various control paradigms for the agent.
 - There are various time paradigms, as well.
-- Network interfaces are available to send data back and forth between Unity. The [TESSE_interface](../../../TESSE_interface) provides a python package that uses the network interface. This package is compatible with multiple versions of python and has minimal dependencies.
+- Network interfaces are available to send data back and forth between Unity. The [tesse-interface](../../../tesse-interface) provides a python package that uses the network interface. This package is compatible with multiple versions of python and has minimal dependencies.
 
 The capabilities of __TESSE__ encompass many aspects of similar systems used for robotics and reinforcement learning in a single framework. 
 However, existing systems often require multiple packages and a large amount of software integration to deliver the same set of functionality. 
@@ -34,7 +34,7 @@ Others may want to develop their own Unity environment with __TESSE__ in order t
 
 For most users, the simplest thing to do is:
 1. Obtain a Unity build with __TESSE__ from the authors.
-2. Obtain [TESSE_interface](../../../TESSE_interface), which provides a Python package to interact with the Unity build. Follow instructions there for using it.
+2. Obtain [tesse-interface](../../../tesse-interface), which provides a Python package to interact with the Unity build. Follow instructions there for using it.
 
 ### Unity Developers
 
@@ -43,7 +43,7 @@ It is meant to be included into a full Unity project that contains build setting
 Unity 2019.1 or newer are required.
 
 This repository should be included in your Unity project's `Assets` folder.
-- For non-version controlled projects, navigate to `[Unity Project]/Assets` and clone this repository: `git clone git@github.mit.edu:TESS/TESSE_core.git`.
+- For non-version controlled projects, navigate to `[Unity Project]/Assets` and clone this repository: `git clone git@github.mit.edu:TESS/tesse-core.git`.
 - For version controlled projects, add this repository as a submodule to your git project:
 ```
 cd [Unity Project]/Assets
@@ -114,27 +114,43 @@ Alternatively, a user could re-purpose the red value to represent a *label id* (
 
 ### Agent Spawn Points
 
-Typically, randomly spawning the agent will place the agent near a location specified in a csv-file at `[Unity Project]/Assets/StreamingAssets/[Scene Name]_spawn_points.csv`. 
-The columns for this file correspond to the x, y, and z values for each spawn point (note that y is up according to Unity coordinate conventions). 
-An example start of the file looks like the following.
+Typically, randomly spawning the agent will place the agent near a location specified in a json at `[Unity Project]/Assets/StreamingAssets/[Scene Name].points`. 
+This json object corresponds to a serialization of `ListOfSpawnPoints`, which is defined in [tesse_spawn_manager.cs](scripts/tesse_spawn_manager.cs#L45). An example file looks like the following.
 ```
--47.0,2.0,3.0
--47.0,2.0,5.0
--47.0,2.0,7.0
--47.0,2.0,9.0
--47.0,2.0,11.0
-...
+{
+    "spawnPoints": [
+        {
+            "name": "tesse_multiscene_agent",
+            "points": [{"x": -2.4, "y": 0.5, "z": -0.1}, {"x": -1, "y": 0.5, "z": -0.2}]
+        },
+        {
+            "name": "tesse_cube_gold",
+            "points": [{"x": -1, "y": 0.5, "z": -3}, {"x": -3, "y": 0.5, "z": -4}]
+        },
+        {
+            "name": "tesse_cube_black",
+            "points": [{"x": -2, "y": 0.5, "z": -4}, {"x": -3, "y": 0.5, "z": 1}]
+        }
+    ]
+}
 ```
+This file specifies two spawn points for the agent, as well as two objects (`tesse_cube_gold` and `tesse_cube_black`) that the user can spawn into the scene (see #object-spawning).
 
 Note that if this file does not exist, then __TESSE__ will randomly attempt to spawn the agent. 
 This may cause the agent to be spawned into weird locations, such as the top of buildings.
 
 Lastly, __TESSE__ can be put into a mode to generate this spawn file (see [Keyboard Controls](#keyboard-controls)). 
-In this mode, you can move the agent through the environment and __TESSE__ will write the locations of the agent to the spawn file.
+In this mode, you can move the agent through the environment and collect spawn points using the following keys:
+- Use <kbd>i</kbd> to store the current point for the agent.
+- Use <kbd>o</kbd> to continuously store points once per second for the agent.
+- Use <kbd>p</kbd> to write all points to the spawn file.
+- Use <kbd>k</kbd> to delete the previous point for the agent.
+- Use <kbd>l</kbd> to delete all points for the agent.
+- Use <kbd>;</kbd> to load the points from the spawn file on disk.
 
 ### Object Spawning
 
-TODO: Write a brief description.
+A build with __TESSE__ typically includes a list of objects that can be spawned by the user via a network interface as described below. Objects position and orientation can be specified by the user or randomly generated by the Unity build.
 
 ## Operation
  
@@ -184,8 +200,8 @@ There are a few special key bindings, as well.
 
 ### Network Interface
 
-See [TESSE_interface](../TESSE_interface) for an example on how to use the network interface. 
-In particular, there is a [python notebook](../TESSE_interface/blob/master/python-demonstration.ipynb) with various examples.
+See [tesse-interface](../tesse-interface) for an example on how to use the network interface. 
+In particular, there is a [python notebook](../tesse-interface/blob/master/python-demonstration.ipynb) with various examples.
 
 ### Running TESSE Headless
 
