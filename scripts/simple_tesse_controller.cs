@@ -285,7 +285,7 @@ public class simple_tesse_controller : MonoBehaviour
         update_imu();
     }
 
-    public Vector3 get_force_command()
+        public Vector3 get_force_command()
     {
         // this function provides a hook to the keyboard force input
         //it is used in the force telemetry broadcast function located
@@ -411,6 +411,8 @@ public class simple_tesse_controller : MonoBehaviour
 
         // get name of object that was collided with to send back as well
         collision_object_name = collision.gameObject.name;
+
+        agent_rigid_body.velocity = Vector3.zero;
     }
 
     private void OnCollisionStay(Collision collision)
