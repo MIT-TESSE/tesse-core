@@ -590,12 +590,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 54dca53c751629149ada64a88aef04a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cubeObject: {fileID: 491944670643728471, guid: 62d04581879c933468428ccef89aff4f,
-    type: 3}
-  smplFemaleObject: {fileID: 638953316409043277, guid: 349496631627ccd4a994e4c7d6f8710f,
-    type: 3}
-  smplMaleObject: {fileID: 8656375703354432992, guid: 707ab0edb9a818e4990bd8fa279df3d4,
-    type: 3}
+  spawnableObjects:
+  - {fileID: 491944670643728471, guid: 62d04581879c933468428ccef89aff4f, type: 3}
+  - {fileID: 638953316409043277, guid: 349496631627ccd4a994e4c7d6f8710f, type: 3}
+  - {fileID: 8656375703354432992, guid: 707ab0edb9a818e4990bd8fa279df3d4, type: 3}
 --- !u!114 &2499290587484027758
 MonoBehaviour:
   m_ObjectHideFlags: 0

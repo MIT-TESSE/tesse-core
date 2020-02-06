@@ -369,10 +369,9 @@ namespace tesse
                            new_object = Instantiate(spawnableObjects[requested_spawn_object.index],
                                 requested_spawn_object.position,
                                 requested_spawn_object.orientation);
-                              new_object.name = smplMaleObject.name;
-                              break;
-                          }
-                        } else { // add requested object at random spawn point
+                        }
+                        else
+                        { // add requested object at random spawn point
                            new_object = Instantiate(spawnableObjects[requested_spawn_object.index],
                                spawner.get_random_spawn_point(spawnableObjects[requested_spawn_object.index].name),
                                UnityEngine.Random.rotation);
