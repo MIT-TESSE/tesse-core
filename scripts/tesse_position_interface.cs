@@ -362,7 +362,7 @@ namespace tesse
                     }
                     else if (requested_spawn_object.index < spawnableObjects.Count)
                     { // Spawn in a new objects
-                        var new_object = new UnityEngine.GameObject();
+                        GameObject new_object;
                         if (requested_spawn_object.method == 0)
                         { // add requested object at user location
                            new_object = Instantiate(spawnableObjects[requested_spawn_object.index],
