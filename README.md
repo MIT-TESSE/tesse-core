@@ -47,7 +47,7 @@ This repository should be included in your Unity project's `Assets` folder.
 - For version controlled projects, add this repository as a submodule to your git project:
 ```
 cd [Unity Project]/Assets
-git submodule add git@github.mit.edu:TESS/TESSE_core.git TESSE
+git submodule add git@github.mit.edu:TESS/tesse-core.git TESSE
 ```
 
 For an example of how this repository integrates into a full simulation build, see [tesse-example-project](../../../tesse-example-project).
